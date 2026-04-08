@@ -34,20 +34,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
 .layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 62px)}
 
 /* ─── SIDEBAR ─── */
-.sidebar{background:var(--warm);border-right:1px solid var(--bord);padding:22px 20px;overflow-y:auto;height:calc(100vh - 62px);position:sticky;top:62px}
-.sb-sec{margin-bottom:24px}
-.sb-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px;color:var(--charcoal)}
-.sb-title::before{content:'';width:3px;height:16px;background:var(--sage);border-radius:2px;flex-shrink:0}
+.sidebar{background:var(--warm);border-right:1px solid var(--bord);padding:14px 14px;overflow-y:auto;height:calc(100vh - 62px);position:sticky;top:62px}
+.sb-sec{margin-bottom:16px}
+.sb-title{font-family:'Playfair Display',serif;font-size:.82rem;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:6px;color:var(--charcoal);text-transform:uppercase;letter-spacing:.04em}
+.sb-title::before{content:'';width:3px;height:13px;background:var(--sage);border-radius:2px;flex-shrink:0}
 
-/* Patient card */
-.pt-card{background:linear-gradient(135deg,var(--forest),var(--sage));color:#fff;border-radius:var(--r);padding:16px 18px}
-.pt-card h3{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:10px}
-.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.78rem}
-.pt-stat strong{display:block;font-size:.95rem}
-.bmi-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;margin-top:8px}
-.bmi-n{background:rgba(39,174,96,.18);color:#a8f0c4;border:1px solid rgba(168,240,196,.4)}
-.bmi-ow{background:rgba(212,144,10,.2);color:var(--amber-l);border:1px solid rgba(245,200,66,.4)}
-.bmi-uw{background:rgba(192,57,43,.2);color:#ffaaaa;border:1px solid rgba(255,170,170,.4)}
+/* Compact patient strip */
+.pt-strip{background:linear-gradient(135deg,var(--forest),var(--sage));color:#fff;border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:9px}
+.pt-strip-icon{font-size:1.4rem;flex-shrink:0}
+.pt-strip-info{flex:1;min-width:0}
+.pt-strip-name{font-family:'Playfair Display',serif;font-size:.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-strip-meta{font-size:.66rem;opacity:.82;display:flex;gap:6px;flex-wrap:wrap;margin-top:1px}
+.pt-strip-meta span{white-space:nowrap}
+.bmi-pill{display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:.62rem;font-weight:700;margin-top:3px}
+.bmi-n{background:rgba(39,174,96,.28);color:#a8f0c4}
+.bmi-ow{background:rgba(212,144,10,.3);color:var(--amber-l)}
+.bmi-uw{background:rgba(192,57,43,.3);color:#ffaaaa}
+/* Legacy compat */
+.bmi-badge{display:none}
+.pt-card,.pt-grid,.pt-stat{display:none}
 
 /* Cal tracker */
 .cal-box{background:#fff;border:1px solid var(--bord);border-radius:var(--r);padding:13px 15px}
@@ -335,30 +340,37 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
 <div class="layout">
 <!-- SIDEBAR -->
 <aside class="sidebar">
+  <!-- Compact patient strip -->
   <div class="sb-sec">
     <div class="sb-title">Patient</div>
-    <div class="pt-card" id="ptCard">
-      <h3 id="ptName">—</h3>
-      <div class="pt-grid">
-        <div class="pt-stat"><strong id="ptHeight">—</strong>Height</div>
-        <div class="pt-stat"><strong id="ptWeight">—</strong>Weight</div>
-        <div class="pt-stat"><strong id="ptBMI">—</strong>BMI</div>
-        <div class="pt-stat"><strong id="ptActivity">—</strong>Activity</div>
+    <div class="pt-strip" id="ptStrip">
+      <div class="pt-strip-icon" id="ptIcon">👤</div>
+      <div class="pt-strip-info">
+        <div class="pt-strip-name" id="ptName">Select a scenario →</div>
+        <div class="pt-strip-meta">
+          <span id="ptHeight">—</span>
+          <span id="ptWeight">—</span>
+          <span>BMI <strong id="ptBMI">—</strong></span>
+          <span id="ptActivity">—</span>
+        </div>
+        <div id="ptBMIBadge" class="bmi-pill bmi-n" style="display:none">—</div>
       </div>
-      <div id="ptBMIBadge" class="bmi-badge bmi-n">—</div>
     </div>
   </div>
 
+  <!-- Hidden compat elements for old JS refs -->
+  <div id="ptCard" style="display:none"><h3 id="ptNameOld"></h3></div>
+
   <div class="sb-sec">
-    <div class="sb-title">Diet Selected</div>
-    <div id="sbDiet" style="font-size:.83rem;color:#888;font-style:italic">None selected</div>
+    <div class="sb-title">Diet</div>
+    <div id="sbDiet" style="font-size:.78rem;color:#aaa;font-style:italic">None selected</div>
   </div>
 
   <div class="sb-sec">
     <div class="sb-title">Calorie Balance</div>
     <div class="cal-box">
       <div class="cal-row"><span>Consumed</span><strong id="sbCal">0 kcal</strong></div>
-      <div class="cal-row"><span>Daily Goal</span><strong id="sbGoal">— kcal</strong></div>
+      <div class="cal-row"><span>Goal</span><strong id="sbGoal">— kcal</strong></div>
       <div class="cal-divider"></div>
       <div class="cal-row"><span>Difference</span><strong id="sbDiff" style="color:var(--red)">— kcal</strong></div>
     </div>
@@ -368,7 +380,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
     <div class="sb-title">Macronutrients</div>
     <div class="macro-list">
       <div class="macro-item">
-        <div class="macro-lrow"><span>Carbohydrates</span><span id="sbCarbV">0 / —g</span></div>
+        <div class="macro-lrow"><span>Carbs</span><span id="sbCarbV">0 / —g</span></div>
         <div class="macro-bar"><div class="macro-fill mf-carb" id="sbCarbB" style="width:0%"></div></div>
       </div>
       <div class="macro-item">
@@ -386,9 +398,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
     </div>
   </div>
 
-  <div class="sb-sec" id="mealCalSec">
-    <div class="sb-title">Meals Breakdown</div>
-    <div id="mealCalList" style="font-size:.78rem;display:flex;flex-direction:column;gap:6px"></div>
+  <div class="sb-sec">
+    <div class="sb-title">Meal Calories</div>
+    <div id="mealCalList" style="font-size:.76rem;display:flex;flex-direction:column;gap:5px"></div>
   </div>
 </aside>
 
@@ -541,9 +553,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
     <div id="qContainer"></div>
     <div class="btn-row">
       <button class="btn btn-s" onclick="goStep(4)">← Back to Report</button>
-      <button class="pdf-btn" onclick="downloadPDF(5)" title="Download completed quiz as PDF">
+      <button class="pdf-btn" onclick="downloadPDF(5)" title="Download questions & answers as PDF" style="background:#7B68B5">
         <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17h8v1H8v-1zm0-3h8v1H8v-1zm0-3h5v1H8v-1z"/></svg>
-        Download Completed Quiz
+        This Page PDF
+      </button>
+      <button class="pdf-btn" onclick="downloadPDF(0)" title="Download all 5 pages as one PDF">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17h8v1H8v-1zm0-3h8v1H8v-1zm0-3h5v1H8v-1z"/></svg>
+        Download All (Full Report)
       </button>
       <button class="btn btn-p" onclick="submitAll()">Submit All →</button>
     </div>
@@ -912,17 +928,19 @@ function selectScenario(id, silent=false){
       <strong>🎯 Goal:</strong> ${activeScenario.goal}<br>${activeScenario.goalNote}
     </div>`;
 
-  // Sidebar
+  // Sidebar compact strip
   const heightFt = Math.floor(activeScenario.heightIn/12);
   const heightIn2 = activeScenario.heightIn % 12;
+  document.getElementById('ptIcon').textContent = activeScenario.icon;
   document.getElementById('ptName').textContent = `${activeScenario.name}, ${activeScenario.age}`;
   document.getElementById('ptHeight').textContent = `${heightFt}'${heightIn2}"`;
   document.getElementById('ptWeight').textContent = `${activeScenario.weightLbs} lbs`;
   document.getElementById('ptBMI').textContent = bmi.toFixed(1);
   document.getElementById('ptActivity').textContent = activeScenario.activityLevel;
   const badge = document.getElementById('ptBMIBadge');
-  badge.textContent = `${bmiClass}`;
-  badge.className = 'bmi-badge ' + (bmi<18.5?'bmi-uw':bmi<25?'bmi-n':'bmi-ow');
+  badge.style.display = 'inline-flex';
+  badge.textContent = `BMI ${bmi.toFixed(1)} · ${bmiClass}`;
+  badge.className = 'bmi-pill ' + (bmi<18.5?'bmi-uw':bmi<25?'bmi-n':'bmi-ow');
   document.getElementById('sbGoal').textContent = `${DRI.cal} kcal`;
   document.getElementById('scenarioBadge').textContent = `${activeScenario.icon} ${activeScenario.name}`;
 
@@ -1123,292 +1141,273 @@ function dropFood(e, meal){
 }
 
 // ═══════════════════════════════════════════════
-// PDF EXPORT
+// PDF EXPORT — captures all entered data
 // ═══════════════════════════════════════════════
 function downloadPDF(stepNum) {
   const s = activeScenario;
-  const stepNames = {1:'Scenario', 2:'Diet-Plan', 3:'Meal-Log', 4:'Nutrient-Report', 5:'Questions'};
-  const patientName = s ? s.name : 'Patient';
-  const filename = `NutritionLab_${patientName}_Step${stepNum}_${stepNames[stepNum]}.pdf`;
-
-  // Build a clean printable HTML document for this step only
-  const t = getTotals();
   const diet = activeDiet ? DIETS[activeDiet] : null;
-  const bmi = s ? calcBMI(s.weightLbs, s.heightIn).toFixed(1) : '—';
-  const bmiClass = s ? (calcBMI(s.weightLbs,s.heightIn)<18.5?'Underweight':calcBMI(s.weightLbs,s.heightIn)<25?'Normal Weight':calcBMI(s.weightLbs,s.heightIn)<30?'Overweight':'Obese') : '—';
+  const t = getTotals();
+  const bmi = s ? calcBMI(s.weightLbs, s.heightIn) : 0;
+  const bmiClass = bmi<18.5?'Underweight':bmi<25?'Normal Weight':bmi<30?'Overweight':'Obese';
   const now = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const stepNames = {1:'Scenario',2:'Diet Plan',3:'Meal Log',4:'Nutrient Report',5:'Questions & Answers'};
 
-  let bodyContent = '';
+  // ── Shared styles for print window ──
+  const baseCSS = `
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1C1C1E;line-height:1.5;padding:32px;max-width:860px;margin:0 auto;font-size:12px}
+    h1{font-family:Georgia,serif;font-size:22px;margin-bottom:4px}
+    h2{font-family:Georgia,serif;font-size:17px;margin:20px 0 10px;color:#2D5016;border-bottom:1px solid #ddd;padding-bottom:6px}
+    h3{font-family:Georgia,serif;font-size:14px;margin:14px 0 6px}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
+    th{background:#1C1C1E;color:#fff;padding:7px 10px;text-align:left}
+    td{padding:6px 10px;border-bottom:1px solid #eee}
+    tr:nth-child(even) td{background:#fafafa}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+    .green{background:#e8f5e9;color:#2e7d32}.red{background:#fce4e4;color:#c62828}.amber{background:#fff3e0;color:#e65100}.blue{background:#e3f2fd;color:#1565c0}
+    .bar-wrap{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin-top:2px}
+    .bar-fill{height:100%;border-radius:5px}
+    .section{background:#f9f9f9;border-left:3px solid #6B8F47;padding:10px 14px;margin-bottom:12px;border-radius:0 6px 6px 0}
+    .q-block{border:1px solid #eee;border-radius:6px;padding:12px 14px;margin-bottom:10px}
+    .q-block.correct{border-left:4px solid #27AE60}.q-block.wrong{border-left:4px solid #C0392B}.q-block.essay{border-left:4px solid #7B68B5}.q-block.unanswered{border-left:4px solid #ccc}
+    .no-print{background:#f0f0f0;padding:10px 16px;margin-bottom:20px;border-radius:6px;display:flex;align-items:center;gap:10px}
+    .print-btn{margin-left:auto;padding:7px 18px;background:#C45C3A;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px}
+    @media print{.no-print{display:none!important}@page{margin:1.5cm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+  `;
 
-  // ── HEADER for all pages ──
-  const headerHtml = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #2D5016;">
+  // ── Page header ──
+  const pageHeader = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #2D5016">
       <div>
-        <div style="font-size:22px;font-weight:900;color:#1C1C1E;font-family:Georgia,serif">NutritionLab <span style="color:#6B8F47">Activity</span></div>
-        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px">Interactive Diet Analysis</div>
+        <h1>NutritionLab <span style="color:#6B8F47">Activity</span></h1>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px">Interactive Diet Analysis · Step ${stepNum} of 5: ${stepNames[stepNum]}</div>
       </div>
-      <div style="text-align:right;font-size:11px;color:#666">
-        <div><strong>Patient:</strong> ${s?s.name+', '+s.age+' ('+s.tag+')':'Not selected'}</div>
-        <div><strong>Diet:</strong> ${diet?diet.icon+' '+diet.name:'Not selected'}</div>
+      <div style="text-align:right;font-size:11px;color:#555;line-height:1.7">
+        <div><strong>Patient:</strong> ${s?`${s.icon} ${s.name}, ${s.age} — ${s.tag}`:'Not selected'}</div>
+        <div><strong>Diet:</strong> ${diet?`${diet.icon} ${diet.name}`:'Not selected'}</div>
         <div><strong>Date:</strong> ${now}</div>
-        <div><strong>Step ${stepNum} of 5:</strong> ${stepNames[stepNum]}</div>
       </div>
     </div>`;
 
-  if(stepNum === 1) {
-    bodyContent = `
-      <h2 style="font-family:Georgia,serif;color:#1C1C1E;margin-bottom:16px">Step 1: Patient Scenario</h2>
-      ${s ? `
-        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">
-          <tr style="background:#2D5016;color:#fff">
-            <th colspan="4" style="padding:10px 14px;text-align:left;font-family:Georgia,serif;font-size:14px">${s.icon} ${s.name}, Age ${s.age} — ${s.tag}</th>
-          </tr>
-          <tr style="background:#f9f9f9">
-            <td style="padding:8px 12px;border:1px solid #ddd"><strong>Height</strong><br>${Math.floor(s.heightIn/12)}'${s.heightIn%12}"</td>
-            <td style="padding:8px 12px;border:1px solid #ddd"><strong>Weight</strong><br>${s.weightLbs} lbs</td>
-            <td style="padding:8px 12px;border:1px solid #ddd"><strong>BMI</strong><br>${bmi} (${bmiClass})</td>
-            <td style="padding:8px 12px;border:1px solid #ddd"><strong>Activity</strong><br>${s.activityLevel}</td>
-          </tr>
-        </table>
-        <div style="background:#f0f7eb;border-left:4px solid #6B8F47;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.7">
-          <strong>Background:</strong> ${s.background}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px;margin-bottom:16px">
-          <div>
-            <div style="font-weight:700;text-transform:uppercase;font-size:10px;color:#888;margin-bottom:6px">Daily Schedule</div>
-            ${s.schedule.map(x=>`<div style="margin-bottom:4px">→ ${x}</div>`).join('')}
-          </div>
-          <div>
-            <div style="font-weight:700;text-transform:uppercase;font-size:10px;color:#888;margin-bottom:6px">Special Considerations</div>
-            ${s.specialConsiderations.map(x=>`<div style="margin-bottom:4px;color:#C45C3A">⚠ ${x}</div>`).join('')}
-          </div>
-        </div>
-        <div style="background:#fff3e0;border:1px solid #D4900A;border-radius:8px;padding:12px;font-size:12px">
-          <strong>🎯 Goal:</strong> ${s.goal}<br>${s.goalNote}
-        </div>
-        <div style="margin-top:20px;font-size:12px">
-          <strong>Calorie Goal (DRI):</strong> ${DRI.cal} kcal/day &nbsp;|&nbsp; 
-          <strong>Protein:</strong> ${DRI.protein}g &nbsp;|&nbsp; 
-          <strong>Carbs:</strong> ${DRI.carb}g &nbsp;|&nbsp; 
-          <strong>Fat:</strong> ${DRI.fat}g &nbsp;|&nbsp; 
-          <strong>Fiber:</strong> ${DRI.fiber}g
-        </div>
-      ` : '<p style="color:#C0392B">No scenario selected.</p>'}`;
-  }
+  // ── Build each page's content ──
+  let body = '';
 
-  if(stepNum === 2) {
-    bodyContent = `
-      <h2 style="font-family:Georgia,serif;color:#1C1C1E;margin-bottom:16px">Step 2: Diet Plan Selected</h2>
-      ${diet ? `
-        <div style="background:#f9f9f9;border:2px solid #6B8F47;border-radius:12px;padding:20px;margin-bottom:20px;font-size:12px">
-          <div style="font-size:20px;margin-bottom:8px">${diet.icon} <strong style="font-family:Georgia,serif;font-size:16px">${diet.name}</strong></div>
-          <p style="line-height:1.7;margin-bottom:12px">${diet.desc}</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div>
-              <div style="font-weight:700;color:#27AE60;font-size:10px;text-transform:uppercase;margin-bottom:6px">✓ Emphasize</div>
-              ${diet.emphasize.map(e=>`<div style="margin-bottom:3px;color:#2D5016">• ${e}</div>`).join('')}
-            </div>
-            <div>
-              <div style="font-weight:700;color:#C0392B;font-size:10px;text-transform:uppercase;margin-bottom:6px">✗ Limit / Avoid</div>
-              ${diet.avoid.map(e=>`<div style="margin-bottom:3px;color:#C0392B">• ${e}</div>`).join('')}
-            </div>
-          </div>
-        </div>
-        <div style="background:#e8f4f8;border-left:4px solid #3A7CA5;padding:14px;font-size:12px;line-height:1.7">
-          <strong>📚 Module 8 Note:</strong> ${diet.moduleNote}
-        </div>
-      ` : '<p style="color:#C0392B">No diet selected.</p>'}`;
-  }
+  // ───── STEP 1: SCENARIO ─────
+  const scenarioHTML = s ? `
+    <h2>Patient Profile</h2>
+    <table>
+      <tr><th>Name / Age</th><th>Height</th><th>Weight</th><th>BMI</th><th>Activity Level</th><th>Goal</th></tr>
+      <tr><td><strong>${s.icon} ${s.name}, ${s.age}</strong><br><span style="color:#888;font-size:10px">${s.tag}</span></td>
+        <td>${Math.floor(s.heightIn/12)}'${s.heightIn%12}"</td>
+        <td>${s.weightLbs} lbs</td>
+        <td><strong>${bmi.toFixed(1)}</strong> <span class="badge ${bmi<18.5?'red':bmi<25?'green':'amber'}">${bmiClass}</span></td>
+        <td>${s.activityLevel}</td>
+        <td>${s.goal}</td>
+      </tr>
+    </table>
+    <div class="section"><strong>Background:</strong> ${s.background}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div><h3>Daily Schedule</h3>${s.schedule.map(x=>`<div style="margin-bottom:3px">→ ${x}</div>`).join('')}</div>
+      <div><h3>Special Considerations</h3>${s.specialConsiderations.map(x=>`<div style="color:#C45C3A;margin-bottom:3px">⚠ ${x}</div>`).join('')}</div>
+    </div>
+    <div class="section"><strong>🎯 Goal Note:</strong> ${s.goalNote}</div>
+    <h2>DRI Targets for ${s.name}</h2>
+    <table>
+      <tr><th>Calories</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Fiber</th><th>Sodium UL</th></tr>
+      <tr><td>${DRI.cal} kcal</td><td>${DRI.protein}g</td><td>${DRI.carb}g</td><td>${DRI.fat}g</td><td>${DRI.fiber}g</td><td>${DRI.sodium}mg</td></tr>
+    </table>` : '<p style="color:#C0392B">No scenario selected.</p>';
 
-  if(stepNum === 3) {
-    const mealRows = Object.entries(meals).map(([meal, foods])=>{
-      const mealLabel = {breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',snacks:'🍎 Snacks'}[meal];
-      const mealCal = foods.reduce((s,id)=>{const f=FOODS.find(x=>x.id===id);return s+(f?f.cal:0);},0);
-      const rows = foods.map(id=>{
-        const f = FOODS.find(x=>x.id===id);
-        if(!f) return '';
-        return `<tr>
-          <td style="padding:6px 10px;border:1px solid #eee">${f.name}</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.serving}</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.cal}</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.carb}g</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.protein}g</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.fat}g</td>
-          <td style="padding:6px 10px;border:1px solid #eee;text-align:center">${f.fiber}g</td>
-        </tr>`;
-      }).join('');
-      return `
-        <div style="margin-bottom:20px">
-          <div style="background:#1C1C1E;color:#fff;padding:8px 14px;border-radius:6px 6px 0 0;font-weight:700;font-size:13px;display:flex;justify-content:space-between">
-            <span>${mealLabel}</span><span>${mealCal} kcal</span>
-          </div>
-          ${foods.length ? `
-          <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <thead><tr style="background:#f5f5f5">
-              <th style="padding:6px 10px;border:1px solid #eee;text-align:left">Food</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Serving</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Kcal</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Carbs</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Protein</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Fat</th>
-              <th style="padding:6px 10px;border:1px solid #eee">Fiber</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>` : '<div style="padding:10px 14px;background:#fafafa;border:1px solid #eee;font-size:11px;color:#aaa;font-style:italic">No foods added to this meal</div>'}
-        </div>`;
-    }).join('');
-    const totalCal = t.cal;
-    bodyContent = `
-      <h2 style="font-family:Georgia,serif;color:#1C1C1E;margin-bottom:16px">Step 3: Meal Log</h2>
-      <div style="background:#1C1C1E;color:#fff;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;gap:30px;font-size:12px">
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Total Calories</div><strong style="font-size:20px;font-family:Georgia,serif">${Math.round(totalCal)}</strong> kcal</div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Goal</div><strong style="font-size:20px;font-family:Georgia,serif;color:#A8C78A">${DRI.cal}</strong> kcal</div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Difference</div><strong style="font-size:20px;font-family:Georgia,serif;color:${t.cal>=DRI.cal?'#A8C78A':'#ff8888'}">${t.cal>=DRI.cal?'+':''}${Math.round(t.cal-DRI.cal)}</strong> kcal</div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Carbs / Protein / Fat</div><strong>${Math.round(t.carb)}g / ${Math.round(t.protein)}g / ${Math.round(t.fat)}g</strong></div>
+  // ───── STEP 2: DIET ─────
+  const dietHTML = diet ? `
+    <h2>${diet.icon} ${diet.name}</h2>
+    <p style="margin-bottom:12px">${diet.desc}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div><h3 style="color:#27AE60">✓ Emphasize</h3>${diet.emphasize.map(e=>`<div style="margin-bottom:3px;color:#2D5016">• ${e}</div>`).join('')}</div>
+      <div><h3 style="color:#C0392B">✗ Limit / Avoid</h3>${diet.avoid.map(e=>`<div style="margin-bottom:3px;color:#C0392B">• ${e}</div>`).join('')}</div>
+    </div>
+    <div class="section"><strong>📚 Module 8 Note:</strong> ${diet.moduleNote}</div>` : '<p style="color:#C0392B">No diet selected.</p>';
+
+  // ───── STEP 3: MEALS ─────
+  const mealSection = (key, label) => {
+    const foods = meals[key];
+    const mealCal = foods.reduce((sum,id)=>{const f=FOODS.find(x=>x.id===id);return sum+(f?f.cal:0);},0);
+    if(!foods.length) return `<div style="padding:8px 12px;background:#fafafa;border:1px solid #eee;border-radius:6px;color:#aaa;font-style:italic;margin-bottom:10px">${label} — No foods added</div>`;
+    return `<div style="margin-bottom:16px">
+      <div style="background:#1C1C1E;color:#fff;padding:7px 12px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;font-weight:700">
+        <span>${label}</span><span>${mealCal} kcal</span>
       </div>
-      ${mealRows}`;
-  }
-
-  if(stepNum === 4) {
-    const NLIST = [
-      {k:'cal',label:'Calories',dri:DRI.cal,unit:'kcal'},
-      {k:'carb',label:'Carbohydrates',dri:DRI.carb,unit:'g'},
-      {k:'protein',label:'Protein',dri:DRI.protein,unit:'g'},
-      {k:'fat',label:'Fat',dri:DRI.fat,unit:'g'},
-      {k:'fiber',label:'Fiber',dri:DRI.fiber,unit:'g'},
-      {k:'sodium',label:'Sodium (UL)',dri:DRI.sodium,unit:'mg',isUL:true},
-      {k:'vitA',label:'Vitamin A',dri:DRI.vitA,unit:'mcg'},
-      {k:'vitC',label:'Vitamin C',dri:DRI.vitC,unit:'mg'},
-      {k:'vitD',label:'Vitamin D',dri:DRI.vitD,unit:'mcg'},
-      {k:'vitE',label:'Vitamin E',dri:DRI.vitE,unit:'mg'},
-      {k:'vitB6',label:'Vitamin B6',dri:DRI.vitB6,unit:'mg'},
-      {k:'vitB12',label:'Vitamin B12',dri:DRI.vitB12,unit:'mcg'},
-      {k:'folate',label:'Folate',dri:DRI.folate,unit:'mcg'},
-      {k:'calcium',label:'Calcium',dri:DRI.calcium,unit:'mg'},
-      {k:'iron',label:'Iron',dri:DRI.iron,unit:'mg'},
-      {k:'magnesium',label:'Magnesium',dri:DRI.magnesium,unit:'mg'},
-      {k:'potassium',label:'Potassium',dri:DRI.potassium,unit:'mg'},
-      {k:'zinc',label:'Zinc',dri:DRI.zinc,unit:'mg'},
-    ];
-    const rows = NLIST.map(n=>{
-      const val = t[n.k]||0;
-      const pct = Math.round((val/n.dri)*100);
-      let color = '#27AE60';
-      if(n.isUL){ color = pct>100?'#C0392B':'#27AE60'; }
-      else { if(pct<30) color='#C0392B'; else if(pct<70) color='#e67e22'; else if(pct>150) color='#C45C3A'; }
-      const barW = Math.min(100, n.isUL ? pct : pct/2);
-      return `<tr style="border-bottom:1px solid #f0f0f0">
-        <td style="padding:7px 10px;font-size:11px;font-weight:500">${n.label}${n.isUL?' ⚠':''}${pct<30?' ❌':pct<70?' ⚠️':pct>150?' 📈':' ✅'}</td>
-        <td style="padding:7px 10px;font-size:11px;text-align:right">${val.toFixed(1)} ${n.unit}</td>
-        <td style="padding:7px 10px;font-size:11px;text-align:right">${n.dri} ${n.unit}</td>
-        <td style="padding:7px 10px;min-width:120px">
-          <div style="height:10px;background:#eee;border-radius:5px;overflow:hidden">
-            <div style="width:${barW}%;height:100%;background:${color};border-radius:5px"></div>
-          </div>
-        </td>
-        <td style="padding:7px 10px;font-size:11px;font-weight:700;color:${color}">${pct}%</td>
-      </tr>`;
-    }).join('');
-    bodyContent = `
-      <h2 style="font-family:Georgia,serif;color:#1C1C1E;margin-bottom:16px">Step 4: Nutrient Analysis Report</h2>
-      <div style="background:#1C1C1E;color:#fff;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;gap:30px;font-size:12px">
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Consumed</div><strong style="font-size:20px;font-family:Georgia,serif">${Math.round(t.cal)}</strong> kcal</div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Goal</div><strong style="font-size:20px;font-family:Georgia,serif;color:#A8C78A">${DRI.cal}</strong> kcal</div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">% of Goal</div><strong style="font-size:20px;font-family:Georgia,serif;color:#F5C842">${Math.round(t.cal/DRI.cal*100)}%</strong></div>
-        <div><div style="opacity:.5;font-size:10px;text-transform:uppercase;margin-bottom:3px">Diet</div><strong>${diet?diet.icon+' '+diet.name:'—'}</strong></div>
-      </div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:#f5f5f5;font-size:11px">
-          <th style="padding:8px 10px;text-align:left;border:1px solid #eee">Nutrient</th>
-          <th style="padding:8px 10px;border:1px solid #eee">Consumed</th>
-          <th style="padding:8px 10px;border:1px solid #eee">DRI Goal</th>
-          <th style="padding:8px 10px;border:1px solid #eee">Progress</th>
-          <th style="padding:8px 10px;border:1px solid #eee">% Met</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
+      <table style="margin-bottom:0">
+        <tr><th>Food</th><th>Serving</th><th>Kcal</th><th>Carbs</th><th>Protein</th><th>Fat</th><th>Fiber</th><th>Sodium</th></tr>
+        ${foods.map(id=>{const f=FOODS.find(x=>x.id===id);if(!f)return '';return `<tr><td>${f.name}</td><td style="color:#888">${f.serving}</td><td><strong>${f.cal}</strong></td><td>${f.carb}g</td><td>${f.protein}g</td><td>${f.fat}g</td><td>${f.fiber}g</td><td>${f.sodium}mg</td></tr>`;}).join('')}
       </table>
-      <div style="margin-top:12px;font-size:10px;color:#888">✅ ≥70% met &nbsp; ⚠️ 30–69% &nbsp; ❌ <30% (significant gap) &nbsp; 📈 >150% (high) &nbsp; ⚠ UL = Upper Limit (should not exceed)</div>`;
-  }
+    </div>`;
+  };
+  const totalFoods = [...meals.breakfast,...meals.lunch,...meals.dinner,...meals.snacks].length;
+  const mealsHTML = `
+    <div style="background:#1C1C1E;color:#fff;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:28px">
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Total Calories</div><strong style="font-size:18px;font-family:Georgia,serif">${Math.round(t.cal)}</strong> kcal</div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Goal</div><strong style="font-size:18px;font-family:Georgia,serif;color:#A8C78A">${DRI.cal}</strong> kcal</div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Difference</div><strong style="font-size:18px;font-family:Georgia,serif;color:${t.cal>=DRI.cal?'#A8C78A':'#ff8888'}">${t.cal>=DRI.cal?'+':''}${Math.round(t.cal-DRI.cal)}</strong> kcal</div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Foods Selected</div><strong style="font-size:18px;font-family:Georgia,serif">${totalFoods}</strong></div>
+    </div>
+    ${mealSection('breakfast','🌅 Breakfast')}
+    ${mealSection('lunch','☀️ Lunch')}
+    ${mealSection('dinner','🌙 Dinner')}
+    ${mealSection('snacks','🍎 Snacks')}`;
 
-  if(stepNum === 5) {
-    const questions = buildQuestions();
-    const qRows = questions.map(q=>{
+  // ───── STEP 4: REPORT ─────
+  const NLIST = [
+    {k:'cal',label:'Calories',dri:DRI.cal,unit:'kcal',isUL:false},
+    {k:'carb',label:'Carbohydrates',dri:DRI.carb,unit:'g'},
+    {k:'protein',label:'Protein',dri:DRI.protein,unit:'g'},
+    {k:'fat',label:'Fat',dri:DRI.fat,unit:'g'},
+    {k:'fiber',label:'Dietary Fiber',dri:DRI.fiber,unit:'g'},
+    {k:'sodium',label:'Sodium',dri:DRI.sodium,unit:'mg',isUL:true},
+    {k:'vitA',label:'Vitamin A',dri:DRI.vitA,unit:'mcg'},
+    {k:'vitC',label:'Vitamin C',dri:DRI.vitC,unit:'mg'},
+    {k:'vitD',label:'Vitamin D',dri:DRI.vitD,unit:'mcg'},
+    {k:'vitE',label:'Vitamin E',dri:DRI.vitE,unit:'mg'},
+    {k:'vitB6',label:'Vitamin B6',dri:DRI.vitB6,unit:'mg'},
+    {k:'vitB12',label:'Vitamin B12',dri:DRI.vitB12,unit:'mcg'},
+    {k:'folate',label:'Folate',dri:DRI.folate,unit:'mcg'},
+    {k:'calcium',label:'Calcium',dri:DRI.calcium,unit:'mg'},
+    {k:'iron',label:'Iron',dri:DRI.iron,unit:'mg'},
+    {k:'magnesium',label:'Magnesium',dri:DRI.magnesium,unit:'mg'},
+    {k:'potassium',label:'Potassium',dri:DRI.potassium,unit:'mg'},
+    {k:'zinc',label:'Zinc',dri:DRI.zinc,unit:'mg'},
+  ];
+  const reportRows = NLIST.map(n=>{
+    const val=t[n.k]||0; const pct=Math.round((val/n.dri)*100);
+    let color='#27AE60',status='✅';
+    if(n.isUL){color=pct>100?'#C0392B':'#27AE60';status=pct>100?'⚠ Over UL':'✅ Within UL';}
+    else if(pct<30){color='#C0392B';status='❌ <30%';}
+    else if(pct<70){color='#e67e22';status='⚠️ Low';}
+    else if(pct>150){color='#C45C3A';status='📈 High';}
+    const barW=n.isUL?Math.min(100,pct):Math.min(100,pct/1.5);
+    return `<tr>
+      <td><strong>${n.label}</strong>${n.isUL?' <span style="color:#888;font-size:9px">(Upper Limit)</span>':''}</td>
+      <td>${val.toFixed(1)} ${n.unit}</td>
+      <td>${n.dri} ${n.unit}</td>
+      <td><div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${color}"></div></div></td>
+      <td style="color:${color};font-weight:700">${pct}%</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+  const reportHTML = `
+    <div style="background:#1C1C1E;color:#fff;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:28px">
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Consumed</div><strong style="font-size:18px;font-family:Georgia,serif">${Math.round(t.cal)}</strong> kcal</div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Goal</div><strong style="font-size:18px;font-family:Georgia,serif;color:#A8C78A">${DRI.cal}</strong> kcal</div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">% of Goal Met</div><strong style="font-size:18px;font-family:Georgia,serif;color:#F5C842">${Math.round(t.cal/DRI.cal*100)}%</strong></div>
+      <div><div style="opacity:.5;font-size:9px;text-transform:uppercase;margin-bottom:2px">Diet Used</div><strong>${diet?diet.icon+' '+diet.name:'—'}</strong></div>
+    </div>
+    <h2>Macronutrient Distribution</h2>
+    <table>
+      <tr><th>Macronutrient</th><th>Consumed</th><th>DRI</th><th>% of Calories</th><th>% of DRI</th></tr>
+      ${[
+        {label:'Carbohydrates',k:'carb',cal:4,dri:DRI.carb,color:'#D4900A'},
+        {label:'Protein',k:'protein',cal:4,dri:DRI.protein,color:'#3A7CA5'},
+        {label:'Fat',k:'fat',cal:9,dri:DRI.fat,color:'#C45C3A'},
+      ].map(m=>{
+        const v=t[m.k]||0;const totalCal=t.carb*4+t.protein*4+t.fat*9||1;
+        const pctCal=Math.round(v*m.cal/totalCal*100);const pctDRI=Math.round(v/m.dri*100);
+        return `<tr><td>${m.label}</td><td>${v.toFixed(1)}g (${Math.round(v*m.cal)} kcal)</td><td>${m.dri}g</td><td><span style="color:${m.color};font-weight:700">${pctCal}%</span></td><td>${pctDRI}%</td></tr>`;
+      }).join('')}
+    </table>
+    <h2>Full Nutrient Report</h2>
+    <table>
+      <tr><th>Nutrient</th><th>Consumed</th><th>DRI / UL</th><th>Progress</th><th>% Met</th><th>Status</th></tr>
+      ${reportRows}
+    </table>
+    <div style="font-size:10px;color:#888;margin-top:6px">✅ ≥70% DRI met &nbsp; ⚠️ 30–69% &nbsp; ❌ &lt;30% (major gap) &nbsp; 📈 &gt;150% (very high) &nbsp; ⚠ UL = Upper Limit — should not exceed</div>`;
+
+  // ───── STEP 5: QUESTIONS ─────
+  const questionsHTML = ()=>{
+    const qs = shuffledQuestions.length ? shuffledQuestions : buildQuestions();
+    const pts = qs.reduce((s,q)=>{const a=qAnswers[q.id];return s+(a?.correct===true?q.pts:a?.correct===null?q.pts*.5:0);},0);
+    const totalPts = qs.reduce((s,q)=>s+q.pts,0);
+    const correct = Object.values(qAnswers).filter(a=>a.correct===true).length;
+    const wrong   = Object.values(qAnswers).filter(a=>a.correct===false).length;
+    const essays  = Object.values(qAnswers).filter(a=>a.correct===null).length;
+
+    const scoreSummary = `<div style="background:#2D5016;color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:18px;display:flex;gap:24px;align-items:center">
+      <div style="font-size:36px;font-family:Georgia,serif;font-weight:900">${Math.round(pts/totalPts*100)}%</div>
+      <div>
+        <div><strong>${pts.toFixed(0)} / ${totalPts} points</strong></div>
+        <div style="opacity:.75;font-size:11px">${correct} correct · ${wrong} incorrect · ${essays} essay${essays!==1?'s':''} pending review</div>
+        <div style="opacity:.65;font-size:10px;margin-top:2px">Patient: ${s?s.name:'—'} · Diet: ${diet?diet.name:'—'}</div>
+      </div>
+    </div>`;
+
+    const qBlocks = qs.map(q=>{
       const ans = qAnswers[q.id];
-      let answerText = '<em style="color:#aaa">Not answered</em>';
-      let statusColor = '#aaa'; let statusIcon = '○';
-      if(ans) {
-        if(q.type==='essay') {
-          answerText = `<div style="background:#f9f9f9;padding:10px;border-radius:6px;font-style:italic">"${ans.text||'(no text)'}"</div>`;
-          statusColor = '#7B68B5'; statusIcon = '✎ Essay — Pending Review';
-        } else if(q.type==='radio') {
-          const opt = q.options[ans.selected];
-          answerText = opt ? opt.text : '—';
-          statusColor = ans.correct ? '#27AE60' : '#C0392B';
-          statusIcon = ans.correct ? '✓ Correct' : '✗ Incorrect';
-        } else if(q.type==='checkbox') {
-          const selOpts = (ans.selected||[]).map(i=>q.options[i]?.text).filter(Boolean);
-          answerText = selOpts.length ? selOpts.map(o=>`• ${o}`).join('<br>') : '(none selected)';
-          statusColor = ans.correct ? '#27AE60' : '#C0392B';
-          statusIcon = ans.correct ? '✓ Correct' : '✗ Incorrect';
+      let statusClass='unanswered', statusLabel='Not answered', statusColor='#999';
+      let answerContent = '<em style="color:#aaa">Not answered</em>';
+
+      if(ans){
+        if(q.type==='essay'){
+          statusClass='essay'; statusLabel='✎ Essay — Pending Review'; statusColor='#7B68B5';
+          answerContent = `<div style="background:#f9f9f9;padding:10px 12px;border-radius:6px;border-left:3px solid #7B68B5;line-height:1.7;white-space:pre-wrap">${ans.text||'(no text entered)'}</div>`;
+        } else if(q.type==='radio'){
+          const displayedOpt = q.shuffledOptions ? q.shuffledOptions[ans.selected] : q.options[ans.selected];
+          statusClass = ans.correct?'correct':'wrong';
+          statusLabel = ans.correct?'✓ Correct':'✗ Incorrect';
+          statusColor = ans.correct?'#27AE60':'#C0392B';
+          answerContent = `<div><strong>Your answer:</strong> <span style="color:${statusColor}">${displayedOpt?.text||'—'}</span></div>
+            ${!ans.correct?`<div style="margin-top:6px;padding:8px;background:#fff8f8;border-radius:4px;font-size:11px"><strong>Feedback:</strong> ${q.fb?.no?.replace(/<[^>]+>/g,'')||''}</div>`:''}
+            ${ans.correct?`<div style="margin-top:6px;padding:8px;background:#f0fff4;border-radius:4px;font-size:11px">${q.fb?.ok?.replace(/<[^>]+>/g,'')||''}</div>`:''}`;
+        } else if(q.type==='checkbox'){
+          statusClass = ans.correct?'correct':'wrong';
+          statusLabel = ans.correct?'✓ Correct':'✗ Incorrect';
+          statusColor = ans.correct?'#27AE60':'#C0392B';
+          // Show selected answers using shuffled labels if available
+          const displayedOpts = q.shuffledOptions
+            ? (ans.selected||[]).map(di=>q.shuffledOptions[di]?.text).filter(Boolean)
+            : (ans.selOrigIdx||[]).map(i=>q.options[i]?.text).filter(Boolean);
+          const correctOpts = q.options.filter(o=>o.correct).map(o=>o.text);
+          answerContent = `<div><strong>Your selections:</strong><ul style="margin:4px 0 0 16px">${displayedOpts.map(t=>`<li style="color:${statusColor}">${t}</li>`).join('')}</ul></div>
+            ${!ans.correct?`<div style="margin-top:6px"><strong>Correct answer(s):</strong><ul style="margin:4px 0 0 16px">${correctOpts.map(t=>`<li style="color:#27AE60">${t}</li>`).join('')}</ul></div>`:''}
+            ${!ans.correct&&q.fb?.no?`<div style="margin-top:6px;padding:8px;background:#fff8f8;border-radius:4px;font-size:11px"><strong>Feedback:</strong> ${q.fb.no.replace(/<[^>]+>/g,'')}</div>`:''}`;
         }
       }
-      return `<div style="margin-bottom:16px;padding:14px;border:1px solid #eee;border-radius:8px;border-left:4px solid ${statusColor}">
+
+      return `<div class="q-block ${statusClass}">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-          <strong style="font-size:12px">Q${q.id}. ${q.text.replace(/<[^>]+>/g,'').slice(0,120)}…</strong>
-          <span style="font-size:11px;color:${statusColor};font-weight:700;white-space:nowrap;margin-left:10px">${statusIcon} (${q.pts} pts)</span>
+          <div style="font-weight:700;font-size:12px;flex:1;padding-right:10px">Q${q.id}. ${q.text.replace(/<[^>]+>/g,'')}</div>
+          <div style="white-space:nowrap;font-size:11px;font-weight:700;color:${statusColor}">${statusLabel} <span style="color:#999;font-weight:400">(${q.pts} pts)</span></div>
         </div>
-        <div style="font-size:11px;color:#333">${answerText}</div>
-        ${ans?.correct===false ? `<div style="margin-top:8px;font-size:10px;color:#666;background:#fff8f8;padding:8px;border-radius:4px"><strong>Feedback:</strong> ${(q.fb?.no||'').replace(/<[^>]+>/g,'').slice(0,200)}</div>` : ''}
+        ${q.type==='essay'?`<div style="font-size:10px;color:#888;margin-bottom:6px"><strong>Rubric:</strong> ${q.rubric.join(' · ')}</div>`:'' }
+        ${answerContent}
       </div>`;
     }).join('');
-    const correct = Object.values(qAnswers).filter(a=>a.correct===true).length;
-    const total = questions.length;
-    const pts = questions.reduce((s,q)=>{const a=qAnswers[q.id];return s+(a?.correct===true?q.pts:a?.correct===null?q.pts*.5:0);},0);
-    const totalPts = questions.reduce((s,q)=>s+q.pts,0);
-    bodyContent = `
-      <h2 style="font-family:Georgia,serif;color:#1C1C1E;margin-bottom:16px">Step 5: Analysis Questions</h2>
-      <div style="background:#2D5016;color:#fff;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;gap:30px;align-items:center;font-size:12px">
-        <div style="font-size:40px;font-family:Georgia,serif;font-weight:900">${Math.round(pts/totalPts*100)}%</div>
-        <div>
-          <div><strong>${pts.toFixed(0)} / ${totalPts} points</strong> auto-graded</div>
-          <div style="opacity:.7;margin-top:4px">${correct} correct · ${Object.values(qAnswers).filter(a=>a.correct===false).length} incorrect · ${Object.values(qAnswers).filter(a=>a.correct===null).length} essays pending review</div>
-          <div style="opacity:.7">Patient: ${s?s.name:''} | Diet: ${diet?diet.name:''}</div>
-        </div>
-      </div>
-      ${qRows}
-      <div style="margin-top:16px;font-size:10px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:12px">
-        Generated by NutritionLab Interactive Diet Analysis Activity · ${now}
-      </div>`;
-  }
 
-  // Open print window
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <title>${filename}</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1C1C1E; line-height: 1.5; padding: 40px; max-width: 900px; margin: 0 auto; }
-      h2 { font-family: Georgia, serif; font-size: 20px; margin-bottom: 16px; }
-      @media print {
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { padding: 0; }
-        .no-print { display: none !important; }
-        @page { margin: 1.5cm; }
-      }
-    </style>
-  </head><body>
-    <div class="no-print" style="background:#f0f0f0;padding:12px 20px;margin-bottom:24px;border-radius:8px;display:flex;align-items:center;gap:12px">
-      <span style="font-size:13px;color:#555">Save as PDF: use <strong>File → Print → Save as PDF</strong> in your browser</span>
-      <button onclick="window.print()" style="margin-left:auto;padding:8px 20px;background:#C45C3A;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">🖨️ Print / Save PDF</button>
+    return scoreSummary + qBlocks + `<div style="margin-top:16px;font-size:10px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:10px">Generated by NutritionLab Interactive Diet Analysis Activity · ${now}</div>`;
+  };
+
+  // ── Which content to show ──
+  // For the full "all pages" view, include everything.
+  // For single step, just that step + summary of others.
+  const includeAll = stepNum === 0; // 0 = special "download all"
+
+  if(includeAll || stepNum===1) body += `<h2 style="color:#2D5016;font-size:15px;margin-bottom:8px">📋 Step 1: Patient Scenario</h2>${scenarioHTML}<div style="page-break-after:always"></div>`;
+  if(includeAll || stepNum===2) body += `<h2 style="color:#2D5016;font-size:15px;margin-bottom:8px">🥗 Step 2: Diet Plan</h2>${dietHTML}<div style="page-break-after:always"></div>`;
+  if(includeAll || stepNum===3) body += `<h2 style="color:#2D5016;font-size:15px;margin-bottom:8px">🍽️ Step 3: Meal Log</h2>${mealsHTML}<div style="page-break-after:always"></div>`;
+  if(includeAll || stepNum===4) body += `<h2 style="color:#2D5016;font-size:15px;margin-bottom:8px">📊 Step 4: Nutrient Report</h2>${reportHTML}<div style="page-break-after:always"></div>`;
+  if(includeAll || stepNum===5) body += `<h2 style="color:#2D5016;font-size:15px;margin-bottom:8px">📝 Step 5: Questions & Answers</h2>${questionsHTML()}`;
+
+  const win = window.open('','_blank','width=960,height=720');
+  if(!win){ showToast('Pop-up blocked — allow pop-ups and try again.','⚠️'); return; }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>NutritionLab_${s?s.name:'Student'}_Step${stepNum===0?'All':stepNum}.pdf</title>
+    <style>${baseCSS}</style></head><body>
+    <div class="no-print">
+      <span style="font-size:12px;color:#555">📄 <strong>File → Print → Save as PDF</strong> (set margins to "Default" or "Minimum")</span>
+      <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     </div>
-    ${headerHtml}
-    ${bodyContent}
+    ${pageHeader}${body}
   </body></html>`);
   win.document.close();
   win.focus();
-  // Auto-trigger print after fonts load
-  setTimeout(()=>{ try{ win.print(); } catch(e){} }, 600);
+  setTimeout(()=>{ try{ win.print(); }catch(e){} }, 700);
 }
 
 function updateMealDrops(){
@@ -1598,6 +1597,18 @@ function renderReport(){
 }
 
 // ═══════════════════════════════════════════════
+// SHUFFLE UTILITY
+// ═══════════════════════════════════════════════
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+// ═══════════════════════════════════════════════
 // QUESTIONS — Dynamic per scenario + diet
 // ═══════════════════════════════════════════════
 function buildQuestions(){
@@ -1627,13 +1638,13 @@ function buildQuestions(){
       text:`Why would a physician measure ${s.name}'s waist circumference in addition to BMI?`,
       type:'radio',
       options:[
-        {text:'To measure visceral fat around internal organs, which raises blood pressure, blood sugar, and cardiac disease risk.',correct:true},
-        {text:'To calculate how many sit-ups will reduce abdominal fat.',correct:false},
-        {text:'Waist circumference is used instead of BMI, not in addition to it.',correct:false},
-        {text:'To calculate carbohydrate needs based on body shape.',correct:false},
+        {text:'To assess abdominal (visceral) fat around internal organs, which independently raises risk of heart disease, hypertension, and type 2 diabetes.',correct:true},
+        {text:'Because BMI is only used for children — waist circumference is the adult standard and replaces BMI entirely.',correct:false},
+        {text:'To estimate total body water percentage, which BMI cannot measure.',correct:false},
+        {text:'To determine whether the patient qualifies for bariatric surgery based on the surgical waist cutoff of 45 inches.',correct:false},
       ],
-      fb:{ok:`✓ Correct! Waist circumference measures central (abdominal/visceral) fat — which Module 8 identifies as the "apple shape" that is stored around internal organs and significantly raises blood pressure, blood sugar levels, and cardiac disease risk. For men: >40 inches = central obesity. For women: >35 inches = central obesity.`,
-        no:`Waist circumference identifies visceral (abdominal) fat — the "apple shape." Module 8 states this fat around internal organs raises blood pressure, blood sugar, and cardiac disease risk, independent of BMI.`}
+      fb:{ok:`✓ Correct! Per Module 8: waist circumference identifies central (visceral/abdominal) fat — the "apple shape" stored around internal organs. This fat independently raises blood pressure, blood sugar, and cardiac disease risk, even in people with a normal BMI. Men with waist >40" and women >35" have central obesity.`,
+        no:`Waist circumference is measured IN ADDITION TO BMI (not instead of it) to identify central/abdominal fat stored around internal organs. Module 8 explains this visceral fat independently raises blood pressure, blood sugar levels, and heart disease risk — risks that BMI alone can miss.`}
     },
     {
       id:3,pts:4,
@@ -1772,20 +1783,34 @@ function buildQuestions(){
   ];
 }
 
+// Store shuffled question order per attempt
+let shuffledQuestions = [];
+
 function renderQuestions(){
   const questions = buildQuestions();
-  document.getElementById('qContainer').innerHTML = questions.map(q=>{
+
+  // Shuffle option order for radio/checkbox questions; keep essay as-is
+  shuffledQuestions = questions.map(q => {
+    if(q.type === 'essay') return {...q, shuffledOptions: null};
+    // Create shuffled index mapping
+    const indices = q.options.map((_,i)=>i);
+    const shuffledIdx = shuffle(indices);
+    const shuffledOptions = shuffledIdx.map(i => q.options[i]);
+    return {...q, shuffledOptions, shuffledIdx};
+  });
+
+  document.getElementById('qContainer').innerHTML = shuffledQuestions.map(q=>{
     let body='';
     if(q.type==='radio'){
-      body=`<div class="ans-opts">${q.options.map((o,i)=>`
-        <label class="ans-opt" id="ao_${q.id}_${i}">
-          <input type="radio" name="q${q.id}" value="${i}" onchange="handleRadio(${q.id},${i},${JSON.stringify(q.options)},${JSON.stringify(q.fb)})">
+      body=`<div class="ans-opts">${q.shuffledOptions.map((o,displayIdx)=>`
+        <label class="ans-opt" id="ao_${q.id}_${displayIdx}">
+          <input type="radio" name="q${q.id}" value="${displayIdx}" onchange="handleRadio(${q.id},${displayIdx})">
           ${o.text}
         </label>`).join('')}</div>`;
     } else if(q.type==='checkbox'){
-      body=`<div class="ans-opts">${q.options.map((o,i)=>`
-        <label class="ans-opt" id="ao_${q.id}_${i}">
-          <input type="checkbox" name="q${q.id}_${i}" value="${i}">
+      body=`<div class="ans-opts">${q.shuffledOptions.map((o,displayIdx)=>`
+        <label class="ans-opt" id="ao_${q.id}_${displayIdx}">
+          <input type="checkbox" name="q${q.id}_${displayIdx}" data-qid="${q.id}" data-didx="${displayIdx}">
           ${o.text}
         </label>`).join('')}</div>`;
     } else if(q.type==='essay'){
@@ -1805,17 +1830,25 @@ function renderQuestions(){
   }).join('');
 }
 
-function handleRadio(qId, optIdx, options, fb){
+function handleRadio(qId, displayIdx){
   if(qAnswers[qId]?.submitted) return;
-  const correct = options[optIdx].correct;
-  qAnswers[qId]={selected:optIdx,correct,submitted:true};
-  options.forEach((_,i)=>{
+  const q = shuffledQuestions.find(x=>x.id===qId);
+  if(!q) return;
+  // Map display index back to original option via shuffledIdx
+  const originalIdx = q.shuffledIdx[displayIdx];
+  const correct = q.options[originalIdx].correct;
+  const fb = q.fb;
+  qAnswers[qId]={selected:displayIdx, originalIdx, correct, submitted:true};
+
+  q.shuffledOptions.forEach((_,i)=>{
     const el=document.getElementById(`ao_${qId}_${i}`);
     if(!el)return;
-    if(options[i].correct)el.classList.add('a-correct');
-    else if(i===optIdx&&!correct)el.classList.add('a-wrong');
+    const origI = q.shuffledIdx[i];
+    if(q.options[origI].correct) el.classList.add('a-correct');
+    else if(i===displayIdx&&!correct) el.classList.add('a-wrong');
     el.querySelector('input').disabled=true;
   });
+
   const fb2=document.getElementById(`qf_${qId}`);
   fb2.style.display='block';
   fb2.className=`q-feedback ${correct?'fb-ok':'fb-no'}`;
@@ -1834,46 +1867,53 @@ function saveEssay(qId){
 }
 
 function submitAll(){
-  // Grade checkboxes
-  const questions = buildQuestions();
-  questions.filter(q=>q.type==='checkbox').forEach(q=>{
+  // Grade unsubmitted checkboxes using shuffled mapping
+  shuffledQuestions.filter(q=>q.type==='checkbox').forEach(q=>{
     if(qAnswers[q.id]?.submitted)return;
-    const sel=[];
-    q.options.forEach((_,i)=>{const cb=document.querySelector(`input[name="q${q.id}_${i}"]`);if(cb?.checked)sel.push(i);});
-    const correctIdx=q.options.map((o,i)=>o.correct?i:-1).filter(i=>i>=0);
-    const correct=JSON.stringify([...sel].sort()===JSON.stringify([...correctIdx].sort())) && sel.length>0;
-    // simpler check
-    const selSet=new Set(sel),corSet=new Set(correctIdx);
-    const isCorrect=[...corSet].every(i=>selSet.has(i))&&[...selSet].every(i=>corSet.has(i));
-    qAnswers[q.id]={selected:sel,correct:isCorrect,submitted:true};
-    q.options.forEach((o,i)=>{
-      const el=document.getElementById(`ao_${q.id}_${i}`);
+    const selDisplayIdx=[];
+    q.shuffledOptions.forEach((_,displayIdx)=>{
+      const cb=document.querySelector(`input[data-qid="${q.id}"][data-didx="${displayIdx}"]`);
+      if(cb?.checked) selDisplayIdx.push(displayIdx);
+    });
+    // Map back to original indices
+    const selOrigIdx = selDisplayIdx.map(di=>q.shuffledIdx[di]);
+    const correctOrigIdx = q.options.map((o,i)=>o.correct?i:-1).filter(i=>i>=0);
+    const selSet=new Set(selOrigIdx), corSet=new Set(correctOrigIdx);
+    const isCorrect=[...corSet].every(i=>selSet.has(i))&&[...selSet].every(i=>corSet.has(i))&&selOrigIdx.length>0;
+
+    qAnswers[q.id]={selected:selDisplayIdx, selOrigIdx, correct:isCorrect, submitted:true};
+    q.shuffledOptions.forEach((_,displayIdx)=>{
+      const el=document.getElementById(`ao_${q.id}_${displayIdx}`);
       if(!el)return;
-      if(o.correct)el.classList.add('a-correct');
-      else if(sel.includes(i)&&!o.correct)el.classList.add('a-wrong');
+      const origI = q.shuffledIdx[displayIdx];
+      if(q.options[origI].correct) el.classList.add('a-correct');
+      else if(selDisplayIdx.includes(displayIdx)&&!q.options[origI].correct) el.classList.add('a-wrong');
       el.querySelector('input').disabled=true;
     });
     const fb=document.getElementById(`qf_${q.id}`);
-    fb.style.display='block';fb.className=`q-feedback ${isCorrect?'fb-ok':'fb-no'}`;
+    fb.style.display='block'; fb.className=`q-feedback ${isCorrect?'fb-ok':'fb-no'}`;
     fb.innerHTML=isCorrect?q.fb.ok:q.fb.no;
     document.getElementById(`qc_${q.id}`).classList.add(isCorrect?'q-ans':'q-wrong');
   });
 
-  const questions2 = buildQuestions();
   let earned=0,total=0;
-  questions2.forEach(q=>{
+  shuffledQuestions.forEach(q=>{
     total+=q.pts;
     const a=qAnswers[q.id];
-    if(a?.correct===true)earned+=q.pts;
-    else if(a?.correct===null)earned+=q.pts*0.5;
+    if(a?.correct===true) earned+=q.pts;
+    else if(a?.correct===null) earned+=q.pts*0.5;
   });
   const pct=Math.round(earned/total*100);
   const correct=Object.values(qAnswers).filter(a=>a.correct===true).length;
   const wrong=Object.values(qAnswers).filter(a=>a.correct===false).length;
   const essays=Object.values(qAnswers).filter(a=>a.correct===null).length;
 
+  // Remove old score card if re-submitting
+  const oldCard = document.getElementById('scoreCardEl');
+  if(oldCard) oldCard.remove();
+
   const card=document.createElement('div');
-  card.className='score-card';
+  card.className='score-card'; card.id='scoreCardEl';
   card.innerHTML=`<div class="score-sub" style="margin-bottom:6px">Your Score (Auto-graded)</div>
     <div class="score-num">${pct}%</div>
     <div style="font-size:.8rem;opacity:.65;margin-top:4px">${earned.toFixed(0)} / ${total} pts · Essays pending instructor review</div>
