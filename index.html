@@ -366,41 +366,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--charco
     <div id="sbDiet" style="font-size:.78rem;color:#aaa;font-style:italic">None selected</div>
   </div>
 
-  <div class="sb-sec">
-    <div class="sb-title">Calorie Balance</div>
-    <div class="cal-box">
-      <div class="cal-row"><span>Consumed</span><strong id="sbCal">0 kcal</strong></div>
-      <div class="cal-row"><span>Goal</span><strong id="sbGoal">— kcal</strong></div>
-      <div class="cal-divider"></div>
-      <div class="cal-row"><span>Difference</span><strong id="sbDiff" style="color:var(--red)">— kcal</strong></div>
-    </div>
-  </div>
-
-  <div class="sb-sec">
-    <div class="sb-title">Macronutrients</div>
-    <div class="macro-list">
-      <div class="macro-item">
-        <div class="macro-lrow"><span>Carbs</span><span id="sbCarbV">0 / —g</span></div>
-        <div class="macro-bar"><div class="macro-fill mf-carb" id="sbCarbB" style="width:0%"></div></div>
-      </div>
-      <div class="macro-item">
-        <div class="macro-lrow"><span>Protein</span><span id="sbProtV">0 / —g</span></div>
-        <div class="macro-bar"><div class="macro-fill mf-prot" id="sbProtB" style="width:0%"></div></div>
-      </div>
-      <div class="macro-item">
-        <div class="macro-lrow"><span>Fat</span><span id="sbFatV">0 / —g</span></div>
-        <div class="macro-bar"><div class="macro-fill mf-fat" id="sbFatB" style="width:0%"></div></div>
-      </div>
-      <div class="macro-item">
-        <div class="macro-lrow"><span>Fiber</span><span id="sbFibV">0 / —g</span></div>
-        <div class="macro-bar"><div class="macro-fill mf-fiber" id="sbFibB" style="width:0%"></div></div>
+  <!-- Only shown on Step 4 (Nutrient Report) -->
+  <div id="sbReportSections" style="display:none">
+    <div class="sb-sec">
+      <div class="sb-title">Calorie Balance</div>
+      <div class="cal-box">
+        <div class="cal-row"><span>Consumed</span><strong id="sbCal">0 kcal</strong></div>
+        <div class="cal-row"><span>Goal</span><strong id="sbGoal">— kcal</strong></div>
+        <div class="cal-divider"></div>
+        <div class="cal-row"><span>Difference</span><strong id="sbDiff" style="color:var(--red)">— kcal</strong></div>
       </div>
     </div>
-  </div>
 
-  <div class="sb-sec">
-    <div class="sb-title">Meal Calories</div>
-    <div id="mealCalList" style="font-size:.76rem;display:flex;flex-direction:column;gap:5px"></div>
+    <div class="sb-sec">
+      <div class="sb-title">Macronutrients</div>
+      <div class="macro-list">
+        <div class="macro-item">
+          <div class="macro-lrow"><span>Carbs</span><span id="sbCarbV">0 / —g</span></div>
+          <div class="macro-bar"><div class="macro-fill mf-carb" id="sbCarbB" style="width:0%"></div></div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-lrow"><span>Protein</span><span id="sbProtV">0 / —g</span></div>
+          <div class="macro-bar"><div class="macro-fill mf-prot" id="sbProtB" style="width:0%"></div></div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-lrow"><span>Fat</span><span id="sbFatV">0 / —g</span></div>
+          <div class="macro-bar"><div class="macro-fill mf-fat" id="sbFatB" style="width:0%"></div></div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-lrow"><span>Fiber</span><span id="sbFibV">0 / —g</span></div>
+          <div class="macro-bar"><div class="macro-fill mf-fiber" id="sbFibB" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">Meal Calories</div>
+      <div id="mealCalList" style="font-size:.76rem;display:flex;flex-direction:column;gap:5px"></div>
+    </div>
   </div>
 </aside>
 
@@ -1625,13 +1628,13 @@ function buildQuestions(){
       text:`Based on ${s.name}'s height (${Math.floor(s.heightIn/12)}'${s.heightIn%12}") and weight (${s.weightLbs} lbs), the calculated BMI is ${bmi.toFixed(1)}. What is the correct weight classification and disease risk?`,
       type:'radio',
       options:[
-        {text:`Underweight (BMI <18.5) — high risk for poor health`,correct:bmi<18.5},
-        {text:`Normal weight (BMI 18.5–25) — very low risk for disease`,correct:bmi>=18.5&&bmi<25},
-        {text:`Overweight (BMI 25–30) — increased risk of disease`,correct:bmi>=25&&bmi<30},
-        {text:`Obese (BMI ≥30) — high risk of disease`,correct:bmi>=30},
+        {text:`Underweight — high risk for poor health`,correct:bmi<18.5},
+        {text:`Normal weight — very low risk for disease`,correct:bmi>=18.5&&bmi<25},
+        {text:`Overweight — increased risk of disease`,correct:bmi>=25&&bmi<30},
+        {text:`Obese — high risk of disease`,correct:bmi>=30},
       ],
       fb:{ok:`✓ Correct! ${s.name}'s BMI of ${bmi.toFixed(1)} falls in the "${bmiClass}" category (${bmiRisk}). Remember from Module 8: BMI does not account for body composition, gender, or frame size — it's a screening tool only.`,
-        no:`${s.name}'s BMI of ${bmi.toFixed(1)} falls in the "${bmiClass}" category. Review the BMI Classification table in Module 8 (underweight <18.5, normal 18.5–25, overweight 25–30, obese ≥30).`}
+        no:`${s.name}'s BMI of ${bmi.toFixed(1)} falls in the "${bmiClass}" category. Review the BMI Classification table in Module 8: underweight <18.5, normal 18.5–25, overweight 25–30, obese ≥30.`}
     },
     {
       id:2,pts:2,
@@ -1643,7 +1646,7 @@ function buildQuestions(){
         {text:'To estimate total body water percentage, which BMI cannot measure.',correct:false},
         {text:'To determine whether the patient qualifies for bariatric surgery based on the surgical waist cutoff of 45 inches.',correct:false},
       ],
-      fb:{ok:`✓ Correct! Per Module 8: waist circumference identifies central (visceral/abdominal) fat — the "apple shape" stored around internal organs. This fat independently raises blood pressure, blood sugar, and cardiac disease risk, even in people with a normal BMI. Men with waist >40" and women >35" have central obesity.`,
+      fb:{ok:`✓ Correct! Per Module 8: waist circumference identifies central (visceral/abdominal) fat — the "apple shape" stored around internal organs. This fat independently raises blood pressure, blood sugar, and cardiac disease risk, even in people with a normal BMI.`,
         no:`Waist circumference is measured IN ADDITION TO BMI (not instead of it) to identify central/abdominal fat stored around internal organs. Module 8 explains this visceral fat independently raises blood pressure, blood sugar levels, and heart disease risk — risks that BMI alone can miss.`}
     },
     {
@@ -1951,6 +1954,10 @@ function goStep(n){
       </div>
     </div>`;
   }
+  // Show calorie/macro/meal sidebar only on the Nutrient Report step
+  const reportSec = document.getElementById('sbReportSections');
+  if(reportSec) reportSec.style.display = n===4 ? 'block' : 'none';
+
   currentStep=n;
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel${n}`).classList.add('active');
