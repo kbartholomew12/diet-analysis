@@ -764,7 +764,7 @@ const DIETS = {
     incompatible:[]},
   mediterranean:{name:'Mediterranean',icon:'🫒',sub:'Balanced whole foods, olive oil',
     desc:'A balanced dietary pattern emphasizing fruits, vegetables, whole grains, fish, olive oil, legumes, and moderate dairy. Associated with reduced cardiovascular disease risk and longevity.',
-    moduleNote:'Per Module 8: A reliable weight loss plan is safe and effective, provides adequate nutrition, includes foods you like, accommodates cultural foods, encourages physical activity, and can be followed for a lifetime. The Mediterranean diet meets all these criteria.',
+    moduleNote:'Per Module 8: A reliable dietary plan is safe and effective, provides adequate nutrition, includes foods you enjoy, accommodates cultural foods, encourages physical activity, and can be followed for a lifetime. The Mediterranean diet meets all these criteria and is one of the most evidence-based dietary patterns for long-term health.',
     emphasize:['Olive oil','Fatty fish (salmon, sardines)','Whole grains','Legumes','Fruits & vegetables','Nuts','Moderate dairy','Herbs & spices'],
     avoid:['Red meat (limit)','Processed/ultra-processed foods','Added sugars','Butter','Refined grains'],
     incompatible:[]},
@@ -785,6 +785,12 @@ const DIETS = {
     moduleNote:'Per Module 8: Vitamin B12 is found almost exclusively in animal products — vegans must rely on fortified foods or supplements. Non-heme iron from plants is less bioavailable. Plant proteins are adequate when varied. Calcium must come from fortified plant milks, tofu, and leafy greens.',
     emphasize:['Beans, lentils & legumes','Tofu & tempeh','Nuts & seeds','Whole grains','Fruits & vegetables','Fortified plant milks','Nutritional yeast'],
     avoid:['All meat & poultry','Fish & seafood','Eggs','All dairy products','Honey'],
+    incompatible:[]},
+  standard_american:{name:'Standard American Diet',icon:'🍔',sub:'Typical US dietary pattern',
+    desc:'The Standard American Diet (SAD) is characterized by high intake of processed foods, refined grains, added sugars, saturated fats, sodium, and red meat, combined with low intake of fruits, vegetables, whole grains, and fiber. It reflects what most Americans actually eat, not what is recommended.',
+    moduleNote:'Per Module 8: The typical American diet falls significantly short of DRI recommendations for fiber, vitamins, and minerals while frequently exceeding Upper Limits for sodium, saturated fat, and added sugars. This pattern is strongly associated with obesity, type 2 diabetes, cardiovascular disease, and certain cancers. It serves as a useful comparison point for evaluating healthier dietary patterns.',
+    emphasize:['Fast food & restaurant meals','Processed snack foods','Sugar-sweetened beverages','Refined white bread & pasta','Red and processed meats','Full-fat dairy','Packaged convenience foods'],
+    avoid:['Vegetables (most Americans eat far too few)','Whole grains','Legumes','Fresh fruit (often replaced by juice)','Fish and seafood'],
     incompatible:[]}
 };
 
@@ -1077,6 +1083,9 @@ const DRI_BASE = {
     vitD:15,          // RDA mcg (600 IU)
     vitB6:1.3,        // RDA mg
     vitB12:2.4,       // RDA mcg
+    thiamin:1.2,      // RDA mg (B1)
+    riboflavin:1.3,   // RDA mg (B2)
+    niacin:16,        // RDA mg NE (B3)
     calcium:1000,     // RDA mg
     iron:8,           // RDA mg
     vitA:900,         // RDA mcg RAE
@@ -1098,6 +1107,9 @@ const DRI_BASE = {
     vitD:15,          // RDA mcg
     vitB6:1.3,        // RDA mg
     vitB12:2.4,       // RDA mcg
+    thiamin:1.1,      // RDA mg (B1)
+    riboflavin:1.1,   // RDA mg (B2)
+    niacin:14,        // RDA mg NE (B3)
     calcium:1000,     // RDA mg
     iron:18,          // RDA mg (higher due to menstruation)
     vitA:700,         // RDA mcg RAE
@@ -1137,6 +1149,9 @@ const DRI_UL = {
   F:{
     carb:null, protein:null, fat:null, satfat:null, fiber:null,
     sodium:2300, vitD:100, vitB6:100, vitB12:null,
+    thiamin:null,     // No established UL from food sources
+    riboflavin:null,  // No established UL
+    niacin:35,        // UL mg NE — flushing, liver damage from supplements
     calcium:2500, iron:45, vitA:3000, vitC:2000, vitE:1000,
     folate:1000, magnesium:350, potassium:null, zinc:40
   }
@@ -1175,6 +1190,7 @@ function calcDRI(scenario){
   if(scenario.id === 'tommy') {
     const dri = {
       cal:1800, carb:130, protein:34, fat:60, satfat:14,
+      thiamin:0.9, riboflavin:0.9, niacin:12,
       fiber:25, sodium:2300,
       vitD:15, vitB6:1.0, vitB12:1.8, calcium:1300, iron:8,
       vitA:600, vitC:45, vitE:11, folate:300, magnesium:240, potassium:2300, zinc:8
@@ -1182,6 +1198,7 @@ function calcDRI(scenario){
     dri.ul = {
       carb:null, protein:null, fat:null, satfat:null, fiber:null,
       sodium:2300, vitD:100, vitB6:60, vitB12:null,
+      thiamin:null, riboflavin:null, niacin:20,
       calcium:3000, iron:40, vitA:1700, vitC:1200, vitE:600,
       folate:600, magnesium:110, potassium:null, zinc:23
     };
@@ -1211,6 +1228,7 @@ function calcDRI(scenario){
 
   // Pregnancy (Elena) — IOM 2nd trimester
   if(scenario.id==='elena'){
+    base.thiamin=1.4; base.riboflavin=1.4; base.niacin=18;
     base.folate=600; base.iron=27; base.calcium=1000; base.vitD=15;
     base.vitC=85; base.vitB12=2.6; base.zinc=11; base.magnesium=350;
     base.protein = Math.round(weightKg * 1.1);
@@ -1916,7 +1934,7 @@ function getMealItemsFlat(){
 }
 
 function getTotals(){
-  const keys=['cal','carb','protein','fat','satfat','fiber','sodium','vitD','vitB6','vitB12','calcium','iron','vitA','vitC','vitE','folate','magnesium','potassium','zinc'];
+  const keys=['cal','carb','protein','fat','satfat','fiber','sodium','vitD','vitB6','vitB12','thiamin','riboflavin','niacin','calcium','iron','vitA','vitC','vitE','folate','magnesium','potassium','zinc'];
   const t = Object.fromEntries(keys.map(k=>[k,0]));
   getAllMealItems().forEach(item=>{
     const f=FOODS.find(x=>x.id===item.id);
@@ -2031,13 +2049,16 @@ function renderReport(){
       {k:'sodium',  label:'Sodium',              dri:DRI.sodium,  ul:null,       unit:'mg',     note:`Limit: ≤${DRI.sodium}mg/day. Excess raises blood pressure and CVD risk. Processed foods are the primary source.`, isULOnly:true},
     ]},
     {title:'Vitamins',icon:'💊', items:[
-      {k:'vitA',   label:'Vitamin A',      dri:DRI.vitA,   ul:ul.vitA,   unit:'mcg RAE', note:`RDA: ${DRI.vitA}mcg RAE. UL: ${ul.vitA||'—'}mcg. Fat-soluble; needed for vision and immunity. Toxicity possible with supplements.`},
-      {k:'vitC',   label:'Vitamin C',      dri:DRI.vitC,   ul:ul.vitC,   unit:'mg',      note:`RDA: ${DRI.vitC}mg. UL: ${ul.vitC||'—'}mg. Water-soluble antioxidant; enhances iron absorption. Citrus, peppers, strawberries.`},
-      {k:'vitD',   label:'Vitamin D',      dri:DRI.vitD,   ul:ul.vitD,   unit:'mcg',     note:`RDA: ${DRI.vitD}mcg (${DRI.vitD*40} IU). UL: ${ul.vitD||'—'}mcg. Most people are deficient. Fatty fish, fortified dairy.`},
-      {k:'vitE',   label:'Vitamin E',      dri:DRI.vitE,   ul:ul.vitE,   unit:'mg',      note:`RDA: ${DRI.vitE}mg. UL: ${ul.vitE||'—'}mg. Fat-soluble antioxidant. Nuts, seeds, vegetable oils. Low-fat diets risk deficiency.`},
-      {k:'vitB6',  label:'Vitamin B6',     dri:DRI.vitB6,  ul:ul.vitB6,  unit:'mg',      note:`RDA: ${DRI.vitB6}mg. UL: ${ul.vitB6||'—'}mg. Protein metabolism and neurotransmitters. Poultry, fish, potatoes.`},
-      {k:'vitB12', label:'Vitamin B12',    dri:DRI.vitB12, ul:ul.vitB12, unit:'mcg',     note:`RDA: ${DRI.vitB12}mcg. No established UL. Only in animal products — vegans must supplement.`},
-      {k:'folate', label:'Folate/Folic Acid', dri:DRI.folate, ul:ul.folate, unit:'mcg DFE', note:`RDA: ${DRI.folate}mcg DFE. UL: ${ul.folate||'—'}mcg (synthetic only). DNA synthesis; critical in pregnancy for neural tube development.`},
+      {k:'vitA',      label:'Vitamin A',         dri:DRI.vitA,      ul:ul.vitA,      unit:'mcg RAE', note:`RDA: ${DRI.vitA}mcg RAE. UL: ${ul.vitA||'—'}mcg. Fat-soluble; needed for vision and immunity. Toxicity possible with supplements.`},
+      {k:'vitC',      label:'Vitamin C',          dri:DRI.vitC,      ul:ul.vitC,      unit:'mg',      note:`RDA: ${DRI.vitC}mg. UL: ${ul.vitC||'—'}mg. Water-soluble antioxidant; enhances iron absorption. Citrus, peppers, strawberries.`},
+      {k:'vitD',      label:'Vitamin D',          dri:DRI.vitD,      ul:ul.vitD,      unit:'mcg',     note:`RDA: ${DRI.vitD}mcg (${DRI.vitD*40} IU). UL: ${ul.vitD||'—'}mcg. Most people are deficient. Fatty fish, fortified dairy.`},
+      {k:'vitE',      label:'Vitamin E',          dri:DRI.vitE,      ul:ul.vitE,      unit:'mg',      note:`RDA: ${DRI.vitE}mg. UL: ${ul.vitE||'—'}mg. Fat-soluble antioxidant. Nuts, seeds, vegetable oils. Low-fat diets risk deficiency.`},
+      {k:'thiamin',   label:'Thiamin (B1)',        dri:DRI.thiamin,   ul:ul.thiamin,   unit:'mg',      note:`RDA: ${DRI.thiamin}mg. No established UL from food. Energy metabolism; needed to convert carbohydrates to usable fuel. Found in whole grains, legumes, pork.`},
+      {k:'riboflavin',label:'Riboflavin (B2)',     dri:DRI.riboflavin,ul:ul.riboflavin,unit:'mg',      note:`RDA: ${DRI.riboflavin}mg. No established UL. Energy metabolism, antioxidant support, growth. Dairy, eggs, lean meats, leafy greens, fortified cereals.`},
+      {k:'niacin',    label:'Niacin (B3)',         dri:DRI.niacin,    ul:ul.niacin,    unit:'mg NE',   note:`RDA: ${DRI.niacin}mg NE. UL: ${ul.niacin||'—'}mg (from supplements — flushing at high doses). Energy production, DNA repair. Meat, fish, poultry, peanuts, fortified grains.`},
+      {k:'vitB6',     label:'Vitamin B6',          dri:DRI.vitB6,     ul:ul.vitB6,     unit:'mg',      note:`RDA: ${DRI.vitB6}mg. UL: ${ul.vitB6||'—'}mg — peripheral neuropathy at high doses. Protein metabolism and neurotransmitters. Poultry, fish, potatoes.`},
+      {k:'vitB12',    label:'Vitamin B12',         dri:DRI.vitB12,    ul:ul.vitB12,    unit:'mcg',     note:`RDA: ${DRI.vitB12}mcg. No established UL. Only in animal products — vegans must supplement.`},
+      {k:'folate',    label:'Folate/Folic Acid',   dri:DRI.folate,    ul:ul.folate,    unit:'mcg DFE', note:`RDA: ${DRI.folate}mcg DFE. UL: ${ul.folate||'—'}mcg (synthetic only). DNA synthesis; critical in pregnancy for neural tube development.`},
     ]},
     {title:'Minerals',icon:'⚗️', items:[
       {k:'calcium',   label:'Calcium',    dri:DRI.calcium,   ul:ul.calcium,   unit:'mg', note:`RDA: ${DRI.calcium}mg. UL: ${ul.calcium||'—'}mg. Essential for bone density, muscle contraction, and nerve signaling.`},
@@ -2048,7 +2069,6 @@ function renderReport(){
     ]}
   ];
 
-  let alerts=[];
   let reportHtml='';
   NGROUPS.forEach(g=>{
     reportHtml+=`<div class="nut-section"><div class="nut-sec-title"><span aria-hidden="true">${g.icon}</span>${g.title}</div><div class="nut-rows">`;
@@ -2058,8 +2078,6 @@ function renderReport(){
       const pctUL  = n.ul ? Math.round((val / n.ul) * 100) : null;
       const {cls: fillClass, pClass: pctClass, label: statusLabel} = nutrientStatus(val, n.dri, n.ul, n.isULOnly);
       const bW = barWidth(val, n.dri, n.ul, n.isULOnly);
-
-      if(!n.isULOnly && pctDRI < 50) alerts.push({name:n.label, pct:pctDRI, val, dri:n.dri, unit:n.unit});
 
       const ulDisplay = n.ul ? `<span style="font-size:.64rem;color:#aaa;margin-left:4px">UL: ${n.ul}${n.unit}</span>` : '';
       const goalDisplay = n.isULOnly
@@ -2087,14 +2105,7 @@ function renderReport(){
     reportHtml += `</div></div>`;
   });
   document.getElementById('nutReport').innerHTML = reportHtml;
-
-  // Alert box — now triggers at <50% DRI (genuine deficit)
-  if(alerts.length){
-    document.getElementById('alertsBox').innerHTML=`<div class="alert-box">
-      <h4>❌ Nutrients Significantly Below Goal (below 50% of RDA/AI)</h4>
-      <div class="alert-chips">${alerts.map(a=>`<div class="alert-chip"><strong>${a.name}</strong> ${a.val.toFixed(1)}${a.unit} = ${a.pct}% of ${a.dri}${a.unit} goal</div>`).join('')}</div>
-    </div>`;
-  } else { document.getElementById('alertsBox').innerHTML=''; }
+  document.getElementById('alertsBox').innerHTML = '';
 }
 
 // ═══════════════════════════════════════════════
@@ -2181,21 +2192,40 @@ function buildQuestions(){
         ],
         fb:{ok:`✓ Correct! Per Module 8: waist circumference identifies central (visceral/abdominal) fat — the "apple shape" stored around internal organs. This fat independently raises blood pressure, blood sugar, and cardiac disease risk, even in people with a normal BMI.`,
           no:`Waist circumference is measured IN ADDITION TO BMI (not instead of it) to identify central/abdominal fat stored around internal organs. Module 8 explains this visceral fat independently raises blood pressure, blood sugar levels, and heart disease risk — risks that BMI alone can miss.`}
-      };
+      }
     })(),
-    {
-      id:3,pts:4,
-      text:`${s.name}'s goal is to "${s.goal}." The module states 1 pound = approximately 3,500 calories. How many calories per day are needed above or below maintenance to achieve this goal?`,
-      type:'radio',
-      options:[
-        {text:'±100 calories/day',correct:false},
-        {text:'±250 calories/day',correct:false},
-        {text:'±500 calories/day',correct:true},
-        {text:'±1,000 calories/day',correct:false},
-      ],
-      fb:{ok:`✓ Correct! Per Module 8: 3,500 ÷ 7 days = 500 calories/day. ${s.goalNote} This applies whether the goal is gain or loss of 1 lb/week.`,
-        no:`Module 8: 1 pound ≈ 3,500 calories. To change weight by 1 lb/week: 3,500 ÷ 7 = 500 calories/day difference. ${s.goalNote}`}
-    },
+    // Q3: No-UL nutrient — recognize that >100% DRI ≠ excess without a UL
+    (()=>{
+      // Find a nutrient they consumed above 100% DRI that has no established UL
+      const noULNutrients = [
+        {k:'thiamin',   label:'Thiamin (B1)',      dri:DRI.thiamin||1.2,   unit:'mg',   noULReason:'Thiamin (B1) has no established Tolerable Upper Intake Level from food. The body excretes excess through urine since it is water-soluble.'},
+        {k:'riboflavin',label:'Riboflavin (B2)',   dri:DRI.riboflavin||1.3,unit:'mg',   noULReason:'Riboflavin (B2) has no established UL. Excess is rapidly excreted in urine (which turns bright yellow). No adverse effects from food sources have been observed.'},
+        {k:'vitB12',    label:'Vitamin B12',       dri:DRI.vitB12,         unit:'mcg',  noULReason:'Vitamin B12 has no established UL. It is water-soluble and stored in the liver. No toxicity from food intake has been documented even at very high intakes.'},
+        {k:'vitC',      label:'Vitamin C',         dri:DRI.vitC,           unit:'mg',   noULReason:'While vitamin C has a UL of 2,000mg (from supplements), the amount found in typical food portions is unlikely to approach that level.'},
+        {k:'potassium', label:'Potassium',         dri:DRI.potassium,      unit:'mg',   noULReason:'Potassium from food has no established UL. The kidneys regulate blood potassium effectively in healthy individuals. A UL exists only for supplemental potassium.'},
+        {k:'protein',   label:'Protein',           dri:DRI.protein,        unit:'g',    noULReason:'Protein has no established Tolerable Upper Intake Level. While very high intakes may stress the kidneys in those with kidney disease, no UL has been set for the general healthy population.'},
+        {k:'folate',    label:'Folate',            dri:DRI.folate,         unit:'mcg',  noULReason:'The UL for folate (1,000mcg) applies only to synthetic folic acid from supplements and fortified foods — not to naturally occurring folate in food, which has no established UL.'},
+        {k:'magnesium', label:'Magnesium',         dri:DRI.magnesium,      unit:'mg',   noULReason:'Magnesium from food has no established UL. The 350mg UL applies only to supplemental magnesium. Food sources are safe even at high intakes.'},
+      ];
+      const over100 = noULNutrients.filter(n => (t[n.k]||0) > n.dri && n.k !== 'vitC');
+      const chosen = over100.length > 0 ? over100[0] :
+        noULNutrients.find(n => n.k === 'vitB12') || noULNutrients[0];
+      const pct = Math.round(((t[chosen.k]||chosen.dri*1.2)/chosen.dri)*100);
+      const val = (t[chosen.k]||chosen.dri*1.2).toFixed(1);
+      return {
+        id:3, pts:4,
+        text:`The nutrient report shows ${s.name} consumed ${val}${chosen.unit} of <strong>${chosen.label}</strong> — ${pct}% of the RDA/AI. This exceeds 100%. What does this mean in terms of safety and the DRI framework?`,
+        type:'radio',
+        options:[
+          {text:`Exceeding 100% of the RDA is not automatically dangerous — true excess (toxicity risk) only occurs when intake surpasses the Tolerable Upper Intake Level (UL), which has not been established from food for ${chosen.label}`,correct:true},
+          {text:`Any intake above 100% of the RDA should be avoided — exceeding the recommendation always causes harm`,correct:false},
+          {text:`The RDA and the Upper Limit (UL) are the same value — meeting 100% DRI means you are at the safety limit`,correct:false},
+          {text:`The body automatically stops absorbing ${chosen.label} once the RDA is met, so exceeding it has no effect`,correct:false},
+        ],
+        fb:{ok:`✓ Correct! The DRI framework has two different reference values: the RDA/AI (the amount that MEETS needs) and the UL (the amount above which HARM may occur). ${chosen.noULReason} Consuming above 100% of the RDA is not the same as consuming above the UL. Students frequently confuse these two thresholds.`,
+          no:`The RDA (Recommended Dietary Allowance) is the intake that meets the needs of 97.5% of healthy people. The Tolerable Upper Intake Level (UL) is the highest daily intake unlikely to cause adverse effects. ${chosen.noULReason} Being above the RDA does NOT mean you are above the UL.`}
+      }
+    })(),
     {
       id:4,pts:4,
       text:`You selected ${Math.round(t.cal)} kcal for ${s.name}'s daily intake. The goal is ${DRI.cal} kcal/day. Is ${s.name} on track to meet the ${s.goal} goal?`,
@@ -2222,34 +2252,142 @@ function buildQuestions(){
       fb:{ok:`✓ Correct! Fiber intake (${t.fiber.toFixed(1)}g) vs DRI (${DRI.fiber}g). Module 8 notes soluble fiber helps with satiety, slows digestion to prevent excess insulin response, and keeps you full. Best sources: beans, oats, fruits, vegetables.`,
         no:`${t.fiber.toFixed(1)}g vs ${DRI.fiber}g DRI = ${Math.round(t.fiber/DRI.fiber*100)}% of goal. Module 8 emphasizes fiber for satiety and blood sugar control. Best sources: beans, oats, whole grains, fruits, and vegetables.`}
     },
+    // Q6: Food insecurity — scenario-specific challenges
     {
-      id:6,pts:4,
-      text:`${s.name}'s chosen diet is "${d.name}." Based on Module 8, what is a key macronutrient concern with this diet?`,
+      id:6, pts:4,
+      text:`Imagine ${s.name} is experiencing food insecurity and has limited financial resources. Which of the following would be the MOST realistic challenge to following the ${d.name} diet and meeting ${s.name}'s health goals?`,
       type:'radio',
       options: activeDiet==='keto'?[
-        {text:'Low carbohydrate — eliminates healthy foods like fruits, grains, dairy; most initial weight loss is water loss',correct:true},
-        {text:'Low protein — keto restricts all protein to minimize gluconeogenesis',correct:false},
-        {text:'Low fat — keto specifically limits fat intake',correct:false},
-        {text:'No macronutrient concerns — keto meets all DRI needs',correct:false},
-      ]:activeDiet==='lowfat'?[
-        {text:'Low fat — restricting fat causes malabsorption of fat-soluble vitamins A, D, E, K and essential fatty acid deficiency',correct:true},
-        {text:'Low protein — low-fat diets also reduce protein sources',correct:false},
-        {text:'High fiber — low-fat diets dangerously over-concentrate fiber',correct:false},
-        {text:'No concerns — low-fat diets are universally recommended',correct:false},
+        {text:`Keto-approved foods (fresh meat, avocados, nuts, low-carb vegetables) are typically more expensive than calorie-dense staple foods like rice, bread, and beans — making the keto diet economically inaccessible for many`,correct:true},
+        {text:`Food insecurity only affects access to unhealthy foods — healthy choices remain affordable`,correct:false},
+        {text:`Keto is the most affordable diet because it eliminates expensive carbohydrates`,correct:false},
+        {text:`Food banks always stock keto-appropriate foods`,correct:false},
+      ]:activeDiet==='mediterranean'?[
+        {text:`The Mediterranean diet emphasizes fresh fish, olive oil, and fresh produce — all of which are costly and may not be available at food banks or affordable stores, creating barriers for food-insecure individuals`,correct:true},
+        {text:`Food insecurity has no impact on diet quality — people always have access to healthy options regardless of income`,correct:false},
+        {text:`The Mediterranean diet is always the cheapest option because it uses plant foods`,correct:false},
+        {text:`Food banks typically stock salmon, olive oil, and fresh vegetables in abundance`,correct:false},
       ]:activeDiet==='vegan'?[
-        {text:'Vitamin B12 — only found in animal products; vegans must use fortified foods or supplements',correct:true},
-        {text:'Vitamin C — plants contain no vitamin C',correct:false},
-        {text:'Fiber — vegan diets are always too high in fiber',correct:false},
-        {text:'Carbohydrates — vegan diets are low in carbohydrates',correct:false},
+        {text:`While staple vegan foods like beans and rice are affordable, fortified plant milks, tofu, tempeh, and varied produce needed to prevent B12, iron, and calcium deficiencies can be expensive and unavailable at food banks`,correct:true},
+        {text:`A vegan diet is automatically the cheapest option since it excludes all animal products`,correct:false},
+        {text:`Food insecurity rarely affects vegans since plant foods are always abundant and cheap`,correct:false},
+        {text:`Food banks always provide complete vegan nutrition including fortified foods`,correct:false},
+      ]:activeDiet==='standard_american'?[
+        {text:`The Standard American Diet, while high in processed and fast foods, is often the most economically accessible option — highlighting how food insecurity and low cost drive unhealthy dietary patterns in the US`,correct:true},
+        {text:`The Standard American Diet is the healthiest option for food-insecure individuals`,correct:false},
+        {text:`Food insecurity always leads people to choose healthier foods`,correct:false},
+        {text:`Cost has no relationship to dietary patterns in America`,correct:false},
       ]:[
-        {text:`${d.avoid[0]} — a key food avoided on this diet pattern`,correct:true},
-        {text:'Protein will always be insufficient on this diet',correct:false},
-        {text:'This diet eliminates all fruits and vegetables',correct:false},
-        {text:'This diet has no nutritional concerns if followed as described',correct:false},
+        {text:`Accessing the variety of foods required by the ${d.name} diet — including specific protein sources, fresh produce, and specialty items — may be cost-prohibitive or unavailable for food-insecure individuals, undermining ${s.name}'s ability to meet both dietary goals and DRI targets`,correct:true},
+        {text:`Food insecurity does not affect diet quality since community resources always meet all nutritional needs`,correct:false},
+        {text:`The ${d.name} diet is always the most affordable option regardless of food availability`,correct:false},
+        {text:`People experiencing food insecurity have the same dietary choices as those who are food secure`,correct:false},
       ],
-      fb:{ok:`✓ Correct! Per Module 8: ${d.moduleNote.split('.')[0]}.`,
-        no:`Module 8 specifically discusses this: ${d.moduleNote}`}
+      fb:{ok:`✓ Correct! Food insecurity is a major social determinant of health that directly impacts nutritional quality. The ${d.name} diet may present specific cost and accessibility barriers. Research consistently shows that energy-dense, nutrient-poor foods are less expensive per calorie than fresh produce and lean proteins — making healthy dietary patterns economically challenging for many Americans.`,
+        no:`Food insecurity limits access to specific foods, making many evidence-based dietary patterns difficult or impossible to follow. Cost, geographic access (food deserts), and food bank availability all shape what people can realistically eat. The ${d.name} diet has specific requirements that may create accessibility barriers.`}
     },
+    // Q7: Scenario-specific clinical question based on patient condition + diet
+    (()=>{
+      // Build scenario+diet specific question about a clinically relevant concern
+      const q = {id:7, pts:4, type:'radio'};
+      // Caleb: cancer recovery + high protein/IF/etc — saturated fat + immune function
+      if(s.id==='caleb'){
+        q.text=`Caleb is recovering from cancer and trying to rebuild muscle. His meal plan includes ${Math.round(t.protein)}g of protein (${Math.round(t.protein/DRI.protein*100)}% of goal). According to nutritional science, what is the MOST important consideration about protein timing and cancer recovery?`;
+        q.options=[
+          {text:'Protein intake should be distributed across multiple meals throughout the day — the body can only use ~25–40g of protein for muscle synthesis per meal',correct:true},
+          {text:'All daily protein should be consumed in a single large meal to maximize efficiency',correct:false},
+          {text:'Cancer recovery requires zero dietary protein to prevent tumor growth',correct:false},
+          {text:'Protein timing has no effect on muscle rebuilding — only total daily amount matters',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Research shows muscle protein synthesis is maximized with 25–40g of high-quality protein per meal, distributed throughout the day. Consuming all protein at once (e.g., at dinner) cannot be fully utilized for muscle building. For cancer recovery, Module 8 emphasizes that adequate protein prevents lean tissue wasting and supports immune function during treatment and recovery.`,
+          no:`Protein distribution matters: muscle protein synthesis maxes out at ~25–40g per meal. Spreading protein across 3–4 meals (rather than one large serving) optimizes muscle rebuilding — especially important for Caleb's cancer recovery and muscle regain goals.`};
+      }
+      // Maya: prediabetes + sedentary — added sugars, glycemic load
+      else if(s.id==='maya'){
+        q.text=`Maya has prediabetes. Her meal plan contains ${Math.round(t.carb)}g of carbohydrates. Which statement BEST reflects how carbohydrate QUALITY matters for Maya's blood sugar management?`;
+        q.options=[
+          {text:'Fiber-rich, low-glycemic carbohydrates (beans, whole grains, vegetables) slow glucose absorption and reduce blood sugar spikes — more appropriate for Maya than refined/high-sugar carbohydrates',correct:true},
+          {text:'All carbohydrates raise blood sugar equally regardless of fiber content or food type',correct:false},
+          {text:'Maya should completely eliminate all carbohydrates to manage prediabetes',correct:false},
+          {text:'Added sugars and whole grains have the same effect on blood glucose',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! For prediabetes management, carbohydrate QUALITY is critical. The glycemic index and fiber content of foods determine how quickly glucose enters the bloodstream. Whole grains, legumes, vegetables, and fruits with fiber slow digestion and blunt blood sugar spikes. Refined carbohydrates and added sugars (soda, candy, white bread) cause rapid glucose surges, promoting insulin resistance over time.`,
+          no:`Maya's prediabetes requires attention to carbohydrate quality, not just quantity. Foods rich in fiber (beans, whole grains, vegetables) cause slow, gradual glucose rises. Refined carbs and added sugars cause rapid spikes that stress insulin response. This distinction is especially important for managing her prediabetes progression.`};
+      }
+      // James: teen swimmer — meal timing + athletic performance
+      else if(s.id==='james'){
+        q.text=`James swims competitively. He consumed ${Math.round(t.cal)} kcal total. Which statement about nutrition timing for competitive swimming BEST applies to his situation?`;
+        q.options=[
+          {text:'Athletes should consume carbohydrates before training for fuel and protein + carbohydrates after training to restore glycogen and support muscle repair — meal timing matters for performance',correct:true},
+          {text:'Athletes should avoid eating within 6 hours of exercise to prevent cramping',correct:false},
+          {text:'Timing of meals has no effect on athletic performance — only total daily calories matter',correct:false},
+          {text:'High-fat, low-carbohydrate meals before swimming events maximize performance',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Sports nutrition emphasizes meal timing: carbohydrate-rich meals 2–3 hours before training provide glycogen for fuel, and protein + carbohydrate consumption within 30–60 minutes post-training maximizes glycogen resynthesis and muscle protein synthesis. As a teen swimmer with very high caloric needs (~${DRI.cal} kcal/day), James also needs to ensure he is eating enough total calories to support both growth and training demands.`,
+          no:`Meal timing matters for athletes: carbohydrates before training for fuel, protein + carbs after training for recovery. For a teen competitive swimmer like James, failing to eat enough calories (~${DRI.cal} kcal/day goal) impairs both performance and growth, and undereating protein distributed throughout the day limits muscle development.`};
+      }
+      // Elena: pregnant + vegetarian — iron + vitamin C absorption
+      else if(s.id==='elena'){
+        q.text=`Elena is pregnant and vegetarian. Her iron intake is ${t.iron.toFixed(1)}mg (DRI: ${DRI.iron}mg). What is the MOST clinically important strategy for improving iron absorption from her plant-based meal plan?`;
+        q.options=[
+          {text:'Consume vitamin C-rich foods (citrus, bell peppers, strawberries) at the same meal as iron-containing plant foods to convert non-heme iron to a more absorbable form',correct:true},
+          {text:'Take calcium supplements with every iron-rich meal to enhance co-absorption',correct:false},
+          {text:'Drink coffee or tea with iron-rich meals to stimulate stomach acid production',correct:false},
+          {text:'Cook all iron-containing foods in microwave to preserve iron content',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Plant sources provide non-heme iron, which is absorbed at only ~5% efficiency (compared to ~25% for heme iron from meat). Vitamin C (ascorbic acid) converts non-heme iron to ferrous iron, dramatically increasing absorption. This is especially critical for Elena, whose iron needs nearly doubled in pregnancy (27mg DRI) and who gets no heme iron from her vegetarian diet. Calcium and tannins (coffee/tea) actually INHIBIT iron absorption when consumed simultaneously.`,
+          no:`Elena's non-heme iron from plants is poorly absorbed (~5%). Pairing plant iron sources with vitamin C (citrus, peppers, broccoli) dramatically improves absorption. Calcium supplements and coffee/tea REDUCE iron absorption. This strategy is especially critical given her pregnancy iron needs of 27mg/day.`};
+      }
+      // George: CVD + osteoporosis — saturated fat + heart disease
+      else if(s.id==='george'){
+        q.text=`George has cardiovascular disease. His meal plan contains ${t.satfat.toFixed(1)}g of saturated fat (goal: <${DRI.satfat}g/day, or <10% of calories). What is the MOST direct mechanism by which excess saturated fat affects George's cardiovascular risk?`;
+        q.options=[
+          {text:'Saturated fat raises LDL ("bad") cholesterol, which promotes plaque buildup in arteries (atherosclerosis), increasing risk of heart attack and stroke',correct:true},
+          {text:'Saturated fat directly damages heart muscle cells, causing cardiac arrest immediately',correct:false},
+          {text:'Saturated fat lowers HDL cholesterol only — LDL is not affected by dietary fat',correct:false},
+          {text:'Dietary saturated fat has no clinically meaningful effect on cardiovascular disease',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Saturated fat (found in fatty meats, full-fat dairy, butter, coconut oil) raises LDL cholesterol. Elevated LDL promotes formation and growth of arterial plaques (atherosclerosis). In George's case, who already has established cardiovascular disease, managing saturated fat intake is a primary dietary intervention. Guidelines recommend <10% of calories from saturated fat (George's limit: ~${DRI.satfat}g/day).`,
+          no:`Saturated fat raises LDL (low-density lipoprotein) cholesterol. High LDL drives atherosclerosis — buildup of cholesterol-rich plaques in arteries — increasing George's already elevated risk of heart attack and stroke. Keeping saturated fat under ${DRI.satfat}g/day (<10% of calories) is a key dietary goal for cardiovascular disease management.`};
+      }
+      // Sofia: vegan + iron anemia — vitamin C + non-heme iron
+      else if(s.id==='sofia'){
+        q.text=`Sofia recently became vegan and has iron-deficiency anemia. She consumed ${t.iron.toFixed(1)}mg of iron (${Math.round(t.iron/DRI.iron*100)}% of her ${DRI.iron}mg DRI). Which food combination would be MOST effective for improving her iron status?`;
+        q.options=[
+          {text:'Lentil soup with a side of red bell pepper and lemon juice — non-heme iron paired with vitamin C to enhance absorption',correct:true},
+          {text:'Spinach salad with ranch dressing and iced tea — the liquid helps absorb iron',correct:false},
+          {text:'Taking calcium supplements with every meal to support overall mineral balance',correct:false},
+          {text:'Eating only iron-fortified cereals without any additional foods',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Lentils provide substantial non-heme iron, and vitamin C from bell pepper and lemon juice converts it to ferrous iron (Fe²⁺), dramatically increasing absorption (from ~5% to ~20%). Ranch dressing and iced tea (tannins) at the meal would REDUCE iron absorption. For Sofia's vegan diet, strategic food pairing is essential since she gets no heme iron from meat.`,
+          no:`Non-heme iron from plants needs vitamin C at the same meal to improve absorption. Lentils (iron) + bell pepper/citrus (vitamin C) is an ideal combination. Iced tea contains tannins that block iron absorption. Calcium competes with iron for absorption. Sofia needs intentional food pairing strategies since all her iron comes from less-bioavailable plant sources.`};
+      }
+      // Tommy: child + picky eater — added sugars + bone health
+      else if(s.id==='tommy'){
+        q.text=`Tommy drinks mostly juice and soda instead of milk. His calcium intake was ${t.calcium.toFixed(0)}mg (goal: ${DRI.calcium}mg). Why is adequate calcium MOST critical during Tommy's stage of development?`;
+        q.options=[
+          {text:`Ages 9–18 are peak bone-building years — up to 90% of adult bone mass is established by age 18. Calcium deficiency during this critical window creates permanent bone density deficits and raises osteoporosis risk decades later`,correct:true},
+          {text:`Calcium only matters for adults over 50 — children's bones grow naturally regardless of calcium intake`,correct:false},
+          {text:`Calcium affects only teeth, not bones, so low intake is not a concern for Tommy's skeleton`,correct:false},
+          {text:`Tommy can make up for low calcium intake in adulthood with supplements`,correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Childhood and adolescence represent the most critical window for bone mass accumulation. Peak bone mass — the maximum bone density a person achieves — is largely determined by age 18–20. Adequate calcium (1,300mg/day for ages 9–18) and vitamin D during these years directly determines lifelong fracture risk and osteoporosis susceptibility. Replacing milk with soda and juice eliminates Tommy's primary calcium source at precisely the worst possible time.`,
+          no:`Peak bone mass is built during childhood and adolescence — up to 90% of adult bone density is established by age 18. Tommy's calcium goal of ${DRI.calcium}mg/day reflects this critical developmental need. Replacing milk with soda doesn't just miss calcium — the phosphoric acid in cola may also interfere with calcium absorption.`};
+      }
+      // Generic fallback for any other scenario
+      else {
+        q.text=`${s.name}'s meal plan provided ${t.satfat.toFixed(1)}g of saturated fat. The goal is <${DRI.satfat}g/day (<10% of calories). Which food category is typically the PRIMARY source of saturated fat in the American diet?`;
+        q.options=[
+          {text:'Fatty cuts of meat, full-fat dairy products (butter, cheese, cream), and tropical oils (coconut, palm)',correct:true},
+          {text:'Fresh fruits and most vegetables',correct:false},
+          {text:'Whole grain bread and oatmeal',correct:false},
+          {text:'Legumes and beans',correct:false},
+        ];
+        q.fb={ok:`✓ Correct! Saturated fat is concentrated in animal products (fatty meats, butter, cheese, cream) and certain plant oils (coconut, palm). Replacing saturated fat with unsaturated fat (olive oil, nuts, avocado) reduces LDL cholesterol and cardiovascular disease risk.`,
+          no:`Saturated fat is highest in fatty meats, full-fat dairy (butter, cheese, cream), and tropical oils. Fresh produce, whole grains, and legumes are naturally very low in saturated fat.`};
+      }
+      return q;
+    })(),
     // Q7: Dynamic — asks about the nutrient with the single worst deficit in the student's actual meal
     (()=>{
       // Find the nutrient furthest below its RDA (excluding UL-only nutrients like sodium/satfat)
@@ -2296,7 +2434,7 @@ function buildQuestions(){
         ],
         fb:{ok:`✓ Correct! ${s.name} consumed ${worst.val.toFixed(1)}${worst.unit} of ${worst.label} — a gap of ${gap}${worst.unit} below the ${worst.dri}${worst.unit} daily goal (${pctMet}% met). The best strategy is consistent daily intake of food sources: ${worst.sources}. Note: ${worst.inhibitors}.`,
           no:`${s.name}'s ${worst.label} was ${pctMet}% of goal. The most effective strategy is regular daily intake from food sources: ${worst.sources}. Important: ${worst.inhibitors}.`}
-      };
+      }
     })(),
     {
       id:8,pts:4,
@@ -2357,18 +2495,19 @@ function buildEssayQuestions(s, d){
       ]
     },
     {
-      id:99, pts:8,
-      text:`You chose the <strong>${d.name}</strong> diet for ${s.name}. Review the specific foods you added to your meals and answer ALL THREE parts below:<br><br><strong>Part A — Diet Fit:</strong> Is the ${d.name} diet a good or poor choice for ${s.name}'s specific health situation (${s.tag}) and goal ("${s.goal}")? Explain why, using at least two specific characteristics of this diet pattern from Module 8.<br><br><strong>Part B — Foods That Don't Fit:</strong> Look at the actual foods you added to your meals above. Name at least two specific foods you chose that do NOT align with the ${d.name} diet's guidelines or that work against ${s.name}'s health goal. Explain exactly why each food is a mismatch — reference its nutrient content or the diet's rules.<br><br><strong>Part C — Better Alternatives:</strong> For each food you identified in Part B, name a specific replacement food that would better fit both the ${d.name} diet AND ${s.name}'s individual needs. Explain why each replacement is an improvement using specific nutrients or diet principles.`,
+      id:99, pts:10,
+      text:`If you could redesign ${s.name}'s meal plan from scratch — keeping the <strong>${d.name}</strong> diet — what specific changes would you make? Answer ALL THREE parts using the actual foods in the food library above.<br><br><strong>Part A — Remove:</strong> List at least two specific foods you added to ${s.name}'s meals that you would now remove or reduce. For each, explain the nutritional or clinical reason it is a poor fit for ${s.name}'s situation (reference the nutrient data or ${s.name}'s health profile).<br><br><strong>Part B — Add or Substitute:</strong> For each food removed in Part A, name a specific replacement food from the food library. Explain why it is a better choice for ${s.name} by referencing at least one specific nutrient, DRI goal, or health condition.<br><br><strong>Part C — Gaps Still Present:</strong> Looking at the nutrient report from Step 4, identify one nutrient that remains below 100% of the DRI even in your redesigned plan, and explain what makes it difficult to meet this goal for ${s.name} specifically.`,
       type:'essay',
       rubric:[
-        `Part A: Clearly states whether ${d.name} is appropriate for ${s.name} with at least two diet-specific reasons (not just generic statements)`,
-        `Part A: Connects the diet's actual rules/restrictions to ${s.name}'s specific health situation or goal — not just describes the diet`,
-        `Part B: Names at least two specific foods actually chosen in the meal log that conflict with the diet or health goal`,
-        `Part B: Explains the nutritional reason each food is a mismatch (e.g. "I chose pepperoni pizza, which is high in saturated fat — this conflicts with the Mediterranean diet's emphasis on healthy unsaturated fats")`,
-        `Part C: Proposes a specific replacement food for each mismatch with a clear nutritional justification`,
-        `Part C: Replacements are realistic and genuinely improve fit for BOTH the diet pattern AND ${s.name}'s individual health needs`,
-        `Overall: Response shows understanding of the link between food choices, diet patterns, and patient context — not just recited nutrition facts`,
-        `Writing: Complete sentences, organized by part, references actual foods selected in the meal log`,
+        `Part A: Names at least two specific foods from the actual meal log with a clear nutritional or clinical reason for removal (e.g., "I would remove the French fries — they contributed 23g of fat and 400 kcal with almost no micronutrients")`,
+        `Part A: The reason for removal references ${s.name}'s specific health condition, health goal, or a DRI concern — not just a generic "it's unhealthy" statement`,
+        `Part B: Names specific replacement foods from the food library for each removed item`,
+        `Part B: Explains the replacement in terms of at least one specific nutrient or DRI goal (e.g., "I would replace it with a baked sweet potato, which provides 4g fiber and 1,096mcg vitamin A — both of which were below goal")`,
+        `Part C: Identifies a real nutrient gap from the Step 4 report that would still be present after changes`,
+        `Part C: Provides a thoughtful explanation of WHY this nutrient is hard to meet for this specific scenario (e.g., "Calcium remains low because Elena avoids dairy and plant sources are less bioavailable")`,
+        `Overall: Demonstrates critical thinking about the relationship between food choices, nutrient outcomes, and individual patient needs — not just lists of "healthy" foods`,
+        `Writing quality: Organized by part, references actual foods and nutrient data from the activity rather than generic nutrition knowledge`,
+        `Bonus (up to 2 pts): Suggests a specific meal timing or preparation strategy that would benefit ${s.name} (e.g., pairing iron sources with vitamin C for Sofia, or distributing protein across meals for Caleb)`,
       ]
     }
   ];
