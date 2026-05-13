@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>NutritionLab — Interactive Diet Analysis Activity</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
@@ -1174,6 +1177,13 @@ let dragFoodId = null;
 // INIT
 // ═══════════════════════════════════════════════
 function init(){
+  // Verify B vitamin data loaded correctly (catches browser cache issues)
+  const testFood = FOODS.find(f=>f.id==='oatmeal');
+  if(!testFood || testFood.thiamin === undefined) {
+    console.error('WARNING: B vitamin data missing from FOODS - possible browser cache issue');
+  } else {
+    console.log('✅ B vitamin data verified: oatmeal thiamin =', testFood.thiamin, 'mg');
+  }
   buildScenarioGrid();
   buildDietGrid();
   buildScenarioModal();
@@ -1940,7 +1950,29 @@ function getTotals(){
     const f=FOODS.find(x=>x.id===item.id);
     if(!f) return;
     const s = item.servings||1;
-    keys.forEach(k=>{ t[k]+=(f[k]||0)*s; });
+    // Use explicit property access to ensure B vitamins are captured
+    t.cal        += (f.cal        ||0)*s;
+    t.carb       += (f.carb       ||0)*s;
+    t.protein    += (f.protein    ||0)*s;
+    t.fat        += (f.fat        ||0)*s;
+    t.satfat     += (f.satfat     ||0)*s;
+    t.fiber      += (f.fiber      ||0)*s;
+    t.sodium     += (f.sodium     ||0)*s;
+    t.vitD       += (f.vitD       ||0)*s;
+    t.vitB6      += (f.vitB6      ||0)*s;
+    t.vitB12     += (f.vitB12     ||0)*s;
+    t.thiamin    += (f.thiamin    ||0)*s;
+    t.riboflavin += (f.riboflavin ||0)*s;
+    t.niacin     += (f.niacin     ||0)*s;
+    t.calcium    += (f.calcium    ||0)*s;
+    t.iron       += (f.iron       ||0)*s;
+    t.vitA       += (f.vitA       ||0)*s;
+    t.vitC       += (f.vitC       ||0)*s;
+    t.vitE       += (f.vitE       ||0)*s;
+    t.folate     += (f.folate     ||0)*s;
+    t.magnesium  += (f.magnesium  ||0)*s;
+    t.potassium  += (f.potassium  ||0)*s;
+    t.zinc       += (f.zinc       ||0)*s;
   });
   return t;
 }
@@ -2226,19 +2258,146 @@ function buildQuestions(){
           no:`The RDA (Recommended Dietary Allowance) is the intake that meets the needs of 97.5% of healthy people. The Tolerable Upper Intake Level (UL) is the highest daily intake unlikely to cause adverse effects. ${chosen.noULReason} Being above the RDA does NOT mean you are above the UL.`}
       }
     })(),
-    {
-      id:4,pts:4,
-      text:`You selected ${Math.round(t.cal)} kcal for ${s.name}'s daily intake. The goal is ${DRI.cal} kcal/day. Is ${s.name} on track to meet the ${s.goal} goal?`,
-      type:'radio',
-      options:[
-        {text:`Yes — ${Math.round(t.cal)} kcal meets or exceeds the ${DRI.cal} kcal target`,correct:Math.abs(t.cal-DRI.cal)<300},
-        {text:`No — the intake is too low (${Math.round(t.cal)} kcal vs ${DRI.cal} kcal needed)`,correct:t.cal<DRI.cal-300},
-        {text:`No — the intake is too high (${Math.round(t.cal)} kcal exceeds ${DRI.cal} kcal goal)`,correct:t.cal>DRI.cal+300},
-        {text:"Calorie intake doesn't matter — only macronutrient ratios determine weight goals",correct:false},
-      ],
-      fb:{ok:`✓ Correct! ${s.name} consumed ${Math.round(t.cal)} kcal vs the goal of ${DRI.cal} kcal — ${Math.abs(Math.round(t.cal-DRI.cal))} kcal ${t.cal>=DRI.cal?'surplus':'deficit'}. Module 8 is clear: weight management comes down to calories — a calorie is a calorie, regardless of the source.`,
-        no:`Compare intake vs goal: ${Math.round(t.cal)} kcal consumed vs ${DRI.cal} kcal needed. The difference is ${Math.round(t.cal-DRI.cal)} kcal. Module 8: a calorie surplus causes gain; a deficit causes loss.`}
-    },
+    // Q4: Calorie goal assessment — scenario-specific ranges
+    (()=>{
+      const consumed = Math.round(t.cal);
+      const goalCal  = DRI.cal;
+      const diff     = consumed - goalCal;
+
+      // Determine the calorie strategy for this scenario
+      let strategy, targetDesc, targetRange, withinRange, surplusLabel, deficitLabel;
+
+      if(s.id === 'elena'){
+        // Pregnancy — 2nd trimester: +340 kcal above pre-pregnancy maintenance (~2,200)
+        // Pre-pregnancy maintenance ≈ 2,200; 2nd trimester goal ≈ 2,540
+        // "On track" = within ±250 of the trimester goal (DRI.cal already set to ~2,540)
+        strategy = 'pregnancy';
+        targetDesc = `2nd trimester pregnancy goal (~${goalCal} kcal/day = pre-pregnancy maintenance + 340 kcal)`;
+        targetRange = { low: goalCal - 250, high: goalCal + 350 };
+        // Pregnancy calorie floor: cannot fall >400 below goal without fetal risk
+        withinRange = consumed >= goalCal - 250 && consumed <= goalCal + 350;
+        surplusLabel = `Above goal (${consumed} kcal vs ${goalCal} kcal target)`;
+        deficitLabel = `Below the 2nd trimester goal (${consumed} kcal vs ${goalCal} kcal needed)`;
+      } else if(s.id === 'caleb' || (s.driMod && s.driMod.calMod > 0)){
+        // Weight gain / muscle building: need ~500 kcal SURPLUS above maintenance
+        // DRI.cal is the maintenance + calMod estimate
+        // Target: consumed should be ABOVE goalCal by 400-700 kcal
+        strategy = 'gain';
+        targetDesc = `weight gain goal (need ~500 kcal/day ABOVE ${goalCal - (s.driMod?.calMod||500)} kcal maintenance = ~${goalCal} kcal target)`;
+        targetRange = { low: goalCal - 150, high: goalCal + 300 };
+        withinRange = consumed >= goalCal - 150 && consumed <= goalCal + 300;
+        surplusLabel = `Significantly above goal — risk of excess fat gain`;
+        deficitLabel = `Below the calorie surplus needed for muscle gain (${consumed} kcal vs ~${goalCal} kcal target)`;
+      } else if(s.goal && (s.goal.toLowerCase().includes('lose') || s.goal.toLowerCase().includes('loss') || s.goal.toLowerCase().includes('deficit'))){
+        // Weight loss: need ~500 kcal DEFICIT below maintenance
+        // DRI.cal is the maintenance estimate; target consumed = DRI.cal - ~500
+        const maintenanceCal = goalCal;
+        const targetLossCal = maintenanceCal - 500;
+        strategy = 'loss';
+        targetDesc = `weight loss goal (~500 kcal/day below ${maintenanceCal} kcal maintenance = ~${targetLossCal} kcal/day for ~1 lb/week loss)`;
+        targetRange = { low: targetLossCal - 200, high: targetLossCal + 200 };
+        withinRange = consumed >= targetLossCal - 200 && consumed <= targetLossCal + 200;
+        surplusLabel = `Too many calories for weight loss — at or above maintenance (${consumed} kcal vs target ~${targetLossCal} kcal)`;
+        deficitLabel = `Extreme deficit — below 800 kcal, risks muscle loss and nutrient deficiency`;
+        // Override: extreme deficit is also wrong
+        const extremeDeficit = consumed < 800;
+        if(withinRange === false && extremeDeficit) withinRange = false;
+      } else if(s.goal && s.goal.toLowerCase().includes('maintain')){
+        // Weight maintenance: ±250 kcal of goal
+        strategy = 'maintenance';
+        targetDesc = `weight maintenance goal (within ±250 kcal of ${goalCal} kcal/day)`;
+        targetRange = { low: goalCal - 250, high: goalCal + 250 };
+        withinRange = consumed >= goalCal - 250 && consumed <= goalCal + 250;
+        surplusLabel = `Above maintenance range (${consumed} kcal vs ±250 of ${goalCal} kcal)`;
+        deficitLabel = `Below maintenance range (${consumed} kcal vs ±250 of ${goalCal} kcal)`;
+      } else {
+        // Default: balanced/health goal — within ±250 of DRI
+        strategy = 'maintenance';
+        targetDesc = `calorie goal (within ±250 kcal of ${goalCal} kcal/day)`;
+        targetRange = { low: goalCal - 250, high: goalCal + 250 };
+        withinRange = consumed >= goalCal - 250 && consumed <= goalCal + 250;
+        surplusLabel = `Above recommended range (${consumed} kcal vs ${goalCal} kcal goal)`;
+        deficitLabel = `Below recommended range (${consumed} kcal vs ${goalCal} kcal goal)`;
+      }
+
+      const tooHigh = consumed > targetRange.high;
+      const tooLow  = consumed < targetRange.low;
+
+      // Build answer options — exactly ONE is correct based on actual intake
+      let options;
+      if(strategy === 'loss'){
+        const maintenanceCal = goalCal;
+        const targetLossCal  = maintenanceCal - 500;
+        options = [
+          {text:`✓ On track — ${consumed} kcal creates approximately a ${maintenanceCal - consumed} kcal/day deficit, which is close to the ~500 kcal deficit needed for ~1 lb/week weight loss`,
+           correct: withinRange},
+          {text:`Too many calories — ${consumed} kcal is at or above maintenance (${maintenanceCal} kcal), so no meaningful weight loss deficit exists`,
+           correct: consumed >= maintenanceCal - 100},
+          {text:`Extreme deficit — ${consumed} kcal is dangerously low (below 800 kcal), which causes muscle loss, nutrient deficiency, and metabolic slowdown`,
+           correct: consumed < 800 && !withinRange},
+          {text:`Calorie balance does not affect weight loss — only eliminating carbohydrates matters`,
+           correct: false},
+        ];
+      } else if(strategy === 'gain'){
+        options = [
+          {text:`On track — ${consumed} kcal meets or exceeds the ~${goalCal} kcal target needed for muscle gain (~500 kcal surplus above maintenance)`,
+           correct: withinRange},
+          {text:`Too low — ${consumed} kcal does not provide the calorie surplus needed for muscle gain; the body cannot build new tissue in a significant deficit`,
+           correct: tooLow},
+          {text:`Excessive surplus — ${consumed} kcal far exceeds the ~500 kcal/day needed, which promotes excess fat storage beyond muscle gain`,
+           correct: tooHigh},
+          {text:`Calorie surplus is unnecessary — only protein amount determines muscle growth`,
+           correct: false},
+        ];
+      } else if(strategy === 'pregnancy'){
+        options = [
+          {text:`On track — ${consumed} kcal is within range of the ${goalCal} kcal 2nd trimester goal (+340 kcal above pre-pregnancy needs)`,
+           correct: withinRange},
+          {text:`Too low — ${consumed} kcal falls significantly below the ${goalCal} kcal 2nd trimester goal, risking inadequate fetal nutrition`,
+           correct: tooLow},
+          {text:`Too high — pregnancy requires no additional calories above pre-pregnancy levels in any trimester`,
+           correct: false},
+          {text:`Calorie needs during pregnancy are identical across all three trimesters`,
+           correct: false},
+        ];
+      } else {
+        // maintenance / health
+        options = [
+          {text:`On track — ${consumed} kcal is within ±250 kcal of the ${goalCal} kcal maintenance goal`,
+           correct: withinRange},
+          {text:`Below goal — ${consumed} kcal is more than 250 kcal below the ${goalCal} kcal target, risking nutrient gaps`,
+           correct: tooLow},
+          {text:`Above goal — ${consumed} kcal exceeds the ${goalCal} kcal target by more than 250 kcal, risking gradual weight gain`,
+           correct: tooHigh},
+          {text:`Calorie intake has no impact on body weight for maintenance goals`,
+           correct: false},
+        ];
+      }
+
+      // Build feedback
+      const pregnancyExtraNote = strategy==='pregnancy'
+        ? ` The IOM recommends: 0 extra kcal/day in the 1st trimester, +340 kcal/day in the 2nd trimester, and +450 kcal/day in the 3rd trimester above pre-pregnancy maintenance.` : '';
+
+      const lossNote = strategy==='loss'
+        ? ` Per Module 8: 3,500 kcal = 1 lb of body fat. A 500 kcal/day deficit × 7 days = 3,500 kcal = approximately 1 lb/week weight loss. Deficits larger than 750–1,000 kcal/day risk muscle loss and metabolic slowdown.` : '';
+
+      const gainNote = strategy==='gain'
+        ? ` Per Module 8: a ~500 kcal/day surplus supports ~1 lb/week of combined muscle and weight gain when paired with resistance training. Larger surpluses primarily add fat, not muscle.` : '';
+
+      const ok = withinRange
+        ? `✓ Correct! ${s.name} consumed ${consumed} kcal vs the ${targetDesc}. ${s.name}'s intake is appropriately aligned with the goal.${pregnancyExtraNote}${lossNote}${gainNote}`
+        : `✓ Correct! ${s.name}'s intake of ${consumed} kcal ${tooLow ? 'falls below' : 'exceeds'} the ${targetDesc}.${pregnancyExtraNote}${lossNote}${gainNote}`;
+
+      const no = `${s.name} consumed ${consumed} kcal. The ${targetDesc}. ${
+        strategy==='loss' ? `A ~500 kcal/day deficit from maintenance (${goalCal} kcal) = a target of ~${goalCal-500} kcal/day for ~1 lb/week loss.` :
+        strategy==='gain' ? `A ~500 kcal/day surplus above maintenance is needed for meaningful muscle/weight gain.` :
+        strategy==='pregnancy' ? `The 2nd trimester requires +340 kcal/day above pre-pregnancy maintenance.${pregnancyExtraNote}` :
+        `Maintenance requires staying within ±250 kcal of the goal.`
+      }`;
+
+      return {id:4, pts:4, type:'radio', options, fb:{ok, no},
+        text:`${s.name} consumed <strong>${consumed} kcal</strong> for the day. The calorie goal is <strong>${goalCal} kcal/day</strong> (${targetDesc}). Does this meal plan support ${s.name}'s goal of "${s.goal}"?`};
+    })(),
     {
       id:5,pts:4,
       text:`${s.name}'s dietary fiber intake from your selected foods was ${t.fiber.toFixed(1)}g (DRI recommendation: ${DRI.fiber}g/day). How would you classify this intake, and what food category would best help if it's low?`,
